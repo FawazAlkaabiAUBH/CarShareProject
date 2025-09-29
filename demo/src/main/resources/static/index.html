@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to CarShare API</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background-color: #f4f4f4;
+    }
+    h1 {
+      color: #2c3e50;
+    }
+    p {
+      font-size: 1.1rem;
+    }
+    code {
+      background-color: #eaeaea;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Welcome to CarShare API</h1>
+  <p>You've reached the home page of the CarShare backend service.</p>
+  <p>To test the API, send a request to:</p>
+  <p><code id="endpoint"></code></p>
+
+  <script>
+    const hostname = window.location.hostname;
+    const port = window.location.port ? `:${window.location.port}` : '';
+    const protocol = window.location.protocol;
+    const fullHost = `${protocol}//${hostname}${port}`;
+    document.getElementById('endpoint').textContent = `${fullHost}/api/test`;
+  </script>
+</body>
+</html>
