@@ -1,4 +1,4 @@
-package com.fawazalkaabi.aubh.carshare.demo;
+package edu.aubh.fawazalkaabi.carshare.demo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

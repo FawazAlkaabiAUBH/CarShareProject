@@ -1,4 +1,4 @@
-package com.fawazalkaabi.aubh.carshare.demo;
+package edu.aubh.fawazalkaabi.carshare.demo;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
