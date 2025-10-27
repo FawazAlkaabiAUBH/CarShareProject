@@ -1,0 +1,12 @@
+git commit -m "feat: implement Sprint 1 functional requirements
+
+- Identified and prioritized app user stories
+- Developed use case diagram for user-app interactions
+- Created UML diagram for app features and service connectivity
+- Built driver-rider matching algorithm based on location proximities
+- Implemented cost-splitting system for multiple passengers
+- Added ride booking and cancellation features
+- Integrated notifications for matched ride status or cancellation
+- Identified payment methods for cost-splitting system
+
+All functional tasks for Sprint 1 completed and documented."
