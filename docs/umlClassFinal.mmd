@@ -1,203 +1,334 @@
 ---
 config:
   layout: elk
-title: Class Diagram
+title: Class Diagram with Services (Repositories Implemented)
 ---
-classDiagram 
-   class User { 
-       +userId: int 
-       +name: String 
-       +email: String 
-       passwordHash: String 
-       +phoneNumber: String 
-       location: String 
-       +rating: double 
-       +totalRides: int 
-       +accountStatus: String 
-       +role: String 
-       +createdAt: DateTime 
-       +updatedAt: DateTime 
-       +lastLogin: DateTime 
-      
-       +authenticate() 
-       +validateCredentials() 
-       +verifyAccountStatus() 
-       +recordLoginAttempt() 
-       +updateName() 
-       +updateEmail() 
-       +updateLocation() 
-       +updateRating() 
-       +deactivateAccount() 
-       +getUserInfo() 
-       +saveChanges() 
-   } 
-   class Rider { 
-       
-       +paymentMethod: String 
-       +rideHistory: List 
-       +preferredDriver: String 
-       +defaultPickupLocation: String 
-       +loyaltyPoints: int 
-      
-       +initiateSeatBooking() 
-       +cancelSeatBooking() 
-       +checkSeatAvailability() 
-       +confirmSeatReservation() 
-       +updatePaymentMethod() 
-       +updatePreferredDriver() 
-       +updatePickupLocation() 
-       +submitDriverRating() 
-       +getRiderProfile() 
-   } 
-   class Driver { 
-       licenseNumber: String 
-       +vehicleInfo: String 
-       +vehiclePlate: String 
-       +vehicleType: String 
-       +availabilityStatus: String 
-       +totalRidesPosted: int 
-      
-       +createRideListing() 
-       +updateRideDetails() 
-       +cancelRideListing() 
-       +viewRideHistory() 
-       +updateVehicleDetails() 
-       +updateAvailabilityStatus() 
-       +updateDriverLicense() 
-       +retrieveDriverProfile() 
-   } 
-   class Ride { 
-       +rideId: int 
-       +driverId: int 
-       +riderId: int 
-       +pickupLocation: String 
-       +dropoffLocation: String 
-       +pickupTime: DateTime 
-       +dropoffTime: DateTime 
-       +rideStatus: String 
-       +fare: double 
-       +fareEstimate: double 
-       +routeData: List 
-       +createdAt: DateTime 
-       +updatedAt: DateTime 
-      
-       +initiateRideSession() 
-       +updateStatus() 
-       +cancelRide() 
-       +completeRide() 
-       +computeFare() 
-       +trackRideLocation() 
-       +updateLocation() 
-       +getETA() 
-       +storeRouteData() 
-       +saveRideDetails() 
-   } 
-   class Booking { 
-       +bookingId: int 
-       +riderId: int 
-       +driverId: int 
-       +rideId: int 
-       +bookingStatus: String 
-       +bookingTime: DateTime 
-       +assignedTime: DateTime 
-       +completedTime: DateTime 
-       +cancellationReason: String 
-       +createdAt: DateTime 
-       +updatedAt: DateTime 
-      
-       +createBooking() 
-       +cancelBooking() 
-       +modifyBookingStatus() 
-       +finalizeBooking() 
-       +assignDriver() 
-       +reassignDriver() 
-       +linkRideDetails() 
-       +notifyParties() 
-       +retrieveBookingDetails() 
-       +saveBookingData() 
-   } 
-   class Payment { 
-       +paymentId: int 
-       +bookingId: int 
-       +riderId: int 
-       +amount: double 
-       +taxAmount: double 
-       +discountsApplied: double 
-       +finalAmount: double 
-       +paymentMethod: String 
-       +paymentStatus: String 
-       +transactionId: String 
-       +createdAt: DateTime 
-       +updatedAt: DateTime 
-      
-       +processPayment() 
-       +updatePaymentStatus() 
-       +calculateFinalAmount() 
-       +refund() 
-       +verifyPayment() 
-       +validateMethod() 
-       +checkBalance() 
-       +confirmTransaction() 
-       +recordTransaction() 
-       +generateReceipt() 
-       +savePaymentRecord() 
-   } 
-    class Rating { 
-        +ratingId: int 
-        +rideId: int 
-        +riderId: int 
-        +driverId: int 
-        +score: double 
-        +comment: String 
-        +createdAt: DateTime 
-        +updatedAt: DateTime 
-        +isFlagged: Boolean 
-        +feedbackTags: List 
-       
-        +submitRating() 
-        +updateRating() 
-        +deleteRating() 
-        +validateRatingScore() 
-        +computeDriverAverage() 
-        +computeRiderAverage() 
-        +retrieveRideFeedback() 
-        +generateRatingSummary() 
-        +storeFeedbackTags() 
-        +flagRating() 
-        +saveRatingRecord() 
-    } 
-    class Notification { 
-        +notificationId: int 
-        +userId: int 
-        +type: String 
-        +message: String 
-        +status: String 
-        +deliveryMethod: String 
-        +scheduledTime: DateTime 
-        +deliveredTime: DateTime 
-        +priorityLevel: String 
-        +metadata: Map 
-        +createdAt: DateTime 
-        +updatedAt: DateTime 
-       
-        +sendNotification() 
-        +scheduleNotification() 
-        +updateStatus() 
-        +cancelScheduledNotification() 
-        +loadNotificationTemplate() 
-        +generateMessage() 
-        +personalizeContent() 
-        +validateContent() 
-        +updateDeliveryStatus() 
-        +logNotification() 
-        +saveNotificationRecord() 
-    }
-        User <|-- Driver
-    User <|-- Rider
-    Driver "1" --> "0..*" Ride : posts >
-    Rider "1" --> "0..*" Booking : makes >
-    Ride "1" --> "0..*" Booking : contains >
-    Booking "1" --> "1" Payment : includes >
-    Ride "1" --> "0..*" Notification : triggers >
-    Rider "1" --> "0..*" Rating : gives >
-    Rating "1" --> "0..*" User : receives >
+classDiagram
+class User {
+    +userId: int
+    +name: String
+    +email: String
+    +phoneNumber: String
+    +role: String
+    +accountStatus: String
+    +createdAt: DateTime
+    +updatedAt: DateTime
+    +lastLogin: DateTime
+}
+class Rider {
+    +defaultPickupLocation: String
+    +loyaltyPoints: int
+    +paymentMethod: String
+    +preferredDriver: String
+}
+class Driver {
+    +licenseNumber: String
+    +vehicleInfo: String
+    +vehiclePlate: String
+    +vehicleType: String
+    +availabilityStatus: String
+    +totalRidesPosted: int
+}
+class Ride {
+    +rideId: int
+    +driverId: int
+    +riderId: int
+    +pickupLocation: String
+    +dropoffLocation: String
+    +pickupTime: DateTime
+    +dropoffTime: DateTime
+    +rideStatus: String
+    +fareEstimate: double
+    +createdAt: DateTime
+    +updatedAt: DateTime
+}
+class Booking {
+    +bookingId: int
+    +riderId: int
+    +driverId: int
+    +rideId: int
+    +bookingStatus: String
+    +bookingTime: DateTime
+    +assignedTime: DateTime
+    +completedTime: DateTime
+    +cancellationReason: String
+    +createdAt: DateTime
+    +updatedAt: DateTime
+}
+class Payment {
+    +paymentId: int
+    +bookingId: int
+    +riderId: int
+    +amount: double
+    +taxAmount: double
+    +discountsApplied: double
+    +finalAmount: double
+    +paymentMethod: String
+    +paymentStatus: String
+    +transactionId: String
+    +createdAt: DateTime
+    +updatedAt: DateTime
+}
+class Rating {
+    +ratingId: int
+    +rideId: int
+    +riderId: int
+    +driverId: int
+    +score: double
+    +comment: String
+    +isFlagged: Boolean
+    +feedbackTags: List
+    +createdAt: DateTime
+    +updatedAt: DateTime
+}
+class Notification {
+    +notificationId: int
+    +userId: int
+    +type: String
+    +message: String
+    +status: String
+    +deliveryMethod: String
+    +scheduledTime: DateTime
+    +deliveredTime: DateTime
+    +priorityLevel: String
+    +metadata: Map
+    +createdAt: DateTime
+    +updatedAt: DateTime
+}
+User <|-- Driver
+User <|-- Rider
+Driver "1" --> "0..*" Ride : posts >
+Rider "1" --> "0..*" Booking : makes >
+Ride "1" --> "0..*" Booking : contains >
+Booking "1" --> "1" Payment : includes >
+Ride "1" --> "0..*" Notification : triggers >
+Rider "1" --> "0..*" Rating : gives >
+Rating "1" --> "0..*" User : receives >
+class AuthService {
+    +authenticate(email, password)
+    +validateCredentials(email, password)
+    +recordLoginAttempt(userId)
+    +verifyAccountStatus(userId)
+}
+class UserService {
+    +updateName(userId, name)
+    +updateEmail(userId, email)
+    +updateLocation(userId, location)
+    +deactivateAccount(userId)
+    +getUserInfo(userId)
+}
+class RiderService {
+    +initiateSeatBooking(riderId, rideId)
+    +cancelSeatBooking(bookingId)
+    +checkSeatAvailability(rideId)
+    +confirmSeatReservation(bookingId)
+    +updatePaymentMethod(riderId, method)
+    +updatePreferredDriver(riderId, driverId)
+    +updatePickupLocation(riderId, location)
+    +submitDriverRating(riderId, driverId, rideId, score, comment)
+}
+class DriverService {
+    +createRideListing(driverId, details)
+    +updateRideDetails(rideId, details)
+    +cancelRideListing(rideId)
+    +updateVehicleDetails(driverId, vehicleInfo)
+    +updateAvailabilityStatus(driverId, status)
+    +updateDriverLicense(driverId, licenseNumber)
+}
+class RideService {
+    +initiateRideSession(rideId)
+    +updateStatus(rideId, status)
+    +cancelRide(rideId, reason)
+    +completeRide(rideId)
+    +trackRideLocation(rideId, location)
+    +updateLocation(rideId, location)
+    +storeRouteData(rideId, route)
+}
+class FareService {
+    +computeFare(rideId): double
+    +estimateFare(pickup, dropoff, time): double
+    +applyTaxesAndDiscounts(amount): double
+}
+class RoutingService {
+    +getETA(pickup, dropoff, time): double
+    +generateRoute(pickup, dropoff): List
+}
+class BookingService {
+    +createBooking(riderId, rideId)
+    +cancelBooking(bookingId, reason)
+    +modifyBookingStatus(bookingId, status)
+    +finalizeBooking(bookingId)
+    +assignDriver(bookingId, driverId)
+    +reassignDriver(bookingId, driverId)
+    +linkRideDetails(bookingId, rideId)
+    +notifyParties(bookingId)
+}
+class PaymentService {
+    +processPayment(bookingId, method)
+    +updatePaymentStatus(paymentId, status)
+    +calculateFinalAmount(paymentId): double
+    +refund(paymentId)
+    +verifyPayment(paymentId)
+    +confirmTransaction(paymentId)
+    +generateReceipt(paymentId)
+}
+class RatingService {
+    +submitRating(riderId, driverId, rideId, score, comment)
+    +updateRating(ratingId, score, comment)
+    +deleteRating(ratingId)
+    +validateRatingScore(score)
+    +computeDriverAverage(driverId): double
+    +computeRiderAverage(riderId): double
+}
+class NotificationService {
+    +sendNotification(userId, message, method)
+    +scheduleNotification(userId, message, method, time)
+    +updateStatus(notificationId, status)
+    +cancelScheduledNotification(notificationId)
+    +loadNotificationTemplate(type): String
+    +generateMessage(type, context): String
+    +personalizeContent(userId, template): String
+}
+class UserRepository {
+    +findById(userId: int): User
+    +findByEmail(email: String): User
+    +findByRole(role: String): List~User~
+    +search(nameOrEmail: String): List~User~
+    +save(user: User): void
+    +delete(userId: int): void
+    +exists(userId: int): Boolean
+    +updateLastLogin(userId: int, at: DateTime): void
+    +updateStatus(userId: int, status: String): void
+}
+class RiderRepository {
+    +findById(riderId: int): Rider
+    +findByUserId(userId: int): Rider
+    +findByPreferredDriver(driverId: int): List~Rider~
+    +save(rider: Rider): void
+    +delete(riderId: int): void
+    +updatePaymentMethod(riderId: int, method: String): void
+    +updatePickupLocation(riderId: int, location: String): void
+    +incrementLoyaltyPoints(riderId: int, delta: int): void
+}
+class DriverRepository {
+    +findById(driverId: int): Driver
+    +findByUserId(userId: int): Driver
+    +findByAvailability(status: String): List~Driver~
+    +findByVehicleType(type: String): List~Driver~
+    +save(driver: Driver): void
+    +delete(driverId: int): void
+    +updateAvailability(driverId: int, status: String): void
+    +updateVehicle(driverId: int, info: String, plate: String, type: String): void
+    +updateLicense(driverId: int, licenseNumber: String): void
+}
+class RideRepository {
+    +findById(rideId: int): Ride
+    +findByDriver(driverId: int): List~Ride~
+    +findByRider(riderId: int): List~Ride~
+    +findAvailable(pickupLocation: String, at: DateTime): List~Ride~
+    +save(ride: Ride): void
+    +delete(rideId: int): void
+    +updateStatus(rideId: int, status: String): void
+    +updateLocations(rideId: int, pickup: String, dropoff: String): void
+    +appendRouteData(rideId: int, route: List): void
+    +updateFareEstimate(rideId: int, estimate: double): void
+}
+class BookingRepository {
+    +findById(bookingId: int): Booking
+    +findByRider(riderId: int): List~Booking~
+    +findByRide(rideId: int): List~Booking~
+    +findActiveByRider(riderId: int): List~Booking~
+    +save(booking: Booking): void
+    +delete(bookingId: int): void
+    +updateStatus(bookingId: int, status: String): void
+    +assignDriver(bookingId: int, driverId: int): void
+    +markCompleted(bookingId: int, completedTime: DateTime): void
+    +setCancellationReason(bookingId: int, reason: String): void
+}
+class PaymentRepository {
+    +findById(paymentId: int): Payment
+    +findByBooking(bookingId: int): List~Payment~
+    +findByTransactionId(txId: String): Payment
+    +save(payment: Payment): void
+    +delete(paymentId: int): void
+    +updateStatus(paymentId: int, status: String): void
+    +updateAmounts(paymentId: int, tax: double, discount: double, finalAmount: double): void
+    +recordTransaction(paymentId: int, txId: String): void
+}
+class RatingRepository {
+    +findById(ratingId: int): Rating
+    +findByDriver(driverId: int): List~Rating~
+    +findByRider(riderId: int): List~Rating~
+    +findByRide(rideId: int): List~Rating~
+    +save(rating: Rating): void
+    +delete(ratingId: int): void
+    +flag(ratingId: int, isFlagged: Boolean): void
+    +updateScoreAndComment(ratingId: int, score: double, comment: String): void
+    +storeFeedbackTags(ratingId: int, tags: List): void
+}
+class NotificationRepository {
+    +findById(notificationId: int): Notification
+    +findByUser(userId: int): List~Notification~
+    +findByStatus(status: String): List~Notification~
+    +findScheduledBefore(time: DateTime): List~Notification~
+    +save(notification: Notification): void
+    +delete(notificationId: int): void
+    +updateStatus(notificationId: int, status: String): void
+    +updateDeliveryTime(notificationId: int, deliveredTime: DateTime): void
+    +updateMessage(notificationId: int, message: String, metadata: Map): void
+}
+UserRepository --> User
+RiderRepository --> Rider
+DriverRepository --> Driver
+RideRepository --> Ride
+BookingRepository --> Booking
+PaymentRepository --> Payment
+RatingRepository --> Rating
+NotificationRepository --> Notification
+class PaymentGateway {
+    +capture(amount, method, ref)
+    +refund(ref)
+}
+class NotificationGateway {
+    +deliver(message, method, recipient)
+}
+class MapProvider {
+    +route(pickup, dropoff): List
+    +eta(pickup, dropoff, time): double
+}
+class PricingPolicy {
+    +price(route, time): double
+}
+class TaxPolicy {
+    +tax(amount): double
+}
+class DiscountPolicy {
+    +discount(userId, amount): double
+}
+AuthService ..> UserRepository
+UserService ..> UserRepository
+RiderService ..> RiderRepository
+RiderService ..> BookingService
+RiderService ..> RatingService
+DriverService ..> DriverRepository
+DriverService ..> RideService
+RideService ..> RideRepository
+RideService ..> RoutingService
+RideService ..> FareService
+RideService ..> NotificationService
+BookingService ..> BookingRepository
+BookingService ..> RideService
+BookingService ..> NotificationService
+BookingService ..> PaymentService
+PaymentService ..> PaymentRepository
+PaymentService ..> FareService
+PaymentService ..> PaymentGateway
+RatingService ..> RatingRepository
+RatingService ..> RideRepository
+RatingService ..> UserRepository
+NotificationService ..> NotificationRepository
+NotificationService ..> NotificationGateway
+RoutingService ..> MapProvider
+FareService ..> PricingPolicy
+FareService ..> TaxPolicy
+FareService ..> DiscountPolicy
