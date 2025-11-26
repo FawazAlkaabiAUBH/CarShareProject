@@ -1,0 +1,3 @@
+CarShare’s matching algorithm ensures fairness through proximity-based matching. With the integration of Google API, the algorithm matches nearby riders with a driver, allowing a driver to travel a small distance between multiple ride requests. This ensures that drivers are within a small radius of their pickup location, hence leading to reduced rider wait time, quicker arrival times, and reduced fuel consumption. The matching algorithm is reflected in he app’s component level design which handles ride tracking and flow through methods such as trackRideLocation() and +updateStatus(). Furthermore, CarShare’s matching algorithm ensures fairness in pricing, as each rider’s travel is approximately the same hence the fare can be divided equally among them. 
+
+
