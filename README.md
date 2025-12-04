@@ -6,7 +6,7 @@ This project aims to allow students to easily share their rides with other colle
 
 This is a full-stack monorepo with:
 - **Backend**: NestJS API (port 3000)
-- **Frontend**: Next.js with React & Tailwind CSS (port 3000/3001)
+- **Frontend**: Next.js with React & Tailwind CSS (port 8000)
 - **Package Manager**: pnpm (workspace-based)
 
 ## Prerequisites
@@ -52,7 +52,7 @@ Backend will run on `http://localhost:3000`
 cd web
 pnpm dev
 ```
-Frontend will run on `http://localhost:3001` (or 3000 if available)
+Frontend will run on `http://localhost:8000` (or 3000 if available)
 
 ### Option 2: Run Individual Services
 
@@ -140,12 +140,12 @@ const response = await apiClient.get('/');
    rm -r node_modules pnpm-lock.yaml
    pnpm install
    ```
-3. Check if ports 3000/3001 are already in use
+3. Check if ports 3000/8000 are already in use
 
 ### CORS errors when calling API
 - Ensure backend is running with `pnpm start:dev`
 - Check `api/src/main.ts` for CORS configuration
-- Frontend should be on `http://localhost:3001` by default
+ - Frontend should be on `http://localhost:8000` by default
 
 ## Development Tips
 
