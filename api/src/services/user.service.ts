@@ -45,18 +45,4 @@ export class UserService {
   getAllUsers(): User[] {
     return this.userRepository.findAll();
   }
-
-  // Hardcoded authentication for prototype
-  authenticate(email: string, password: string): User {
-    // For prototype, any password works
-    const user = this.userRepository.findByEmail(email);
-    if (!user) {
-      throw new Error('User not found');
-    }
-    if (user.accountStatus !== 'ACTIVE') {
-      throw new Error('Account is not active');
-    }
-    this.userRepository.updateLastLogin(user.userId, new Date());
-    return user;
-  }
 }

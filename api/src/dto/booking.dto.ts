@@ -1,6 +1,7 @@
 export class CreateBookingDto {
   riderId: number;
   rideId: number;
+  seatsBooked?: number; // Optional, defaults to 1
 }
 
 export class UpdateBookingStatusDto {

@@ -1,13 +1,13 @@
 export class Driver {
   driverId: number;
   userId: number;
-  licenseNumber: string;
   vehicleInfo: string;
-  vehiclePlate: string;
-  vehicleType: string;
-  availabilityStatus: 'AVAILABLE' | 'BUSY' | 'OFFLINE';
-  totalRidesPosted: number;
-  averageRating: number;
+  licenseNumber: string;
+  rating: number;
+  totalRides: number;
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 
   constructor(partial: Partial<Driver>) {
     Object.assign(this, partial);

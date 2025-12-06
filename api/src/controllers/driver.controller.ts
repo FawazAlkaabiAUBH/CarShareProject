@@ -47,15 +47,6 @@ export class DriverController {
     return this.driverService.updateDriver(id, updateDriverDto);
   }
 
-  @Put(':id/availability')
-  updateAvailability(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() statusDto: { status: 'AVAILABLE' | 'BUSY' | 'OFFLINE' },
-  ) {
-    this.driverService.updateAvailabilityStatus(id, statusDto.status);
-    return { message: 'Availability updated successfully' };
-  }
-
   @Put(':id/rating')
   updateRating(
     @Param('id', ParseIntPipe) id: number,

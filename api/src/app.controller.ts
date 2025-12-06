@@ -1,10 +1,12 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { Public } from './auth/public.decorator';
 
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
+  @Public()
   @Get()
   getApiInfo() {
     return {
@@ -12,6 +14,7 @@ export class AppController {
       version: '1.0.0',
       description: 'University Carpooling & Ride Sharing App Backend',
       endpoints: {
+        auth: '/auth',
         users: '/users',
         rides: '/rides',
         bookings: '/bookings',
@@ -20,6 +23,7 @@ export class AppController {
         riders: '/riders',
       },
       features: [
+        'JWT Authentication',
         'Ride Posting',
         'Seat Booking',
         'Driver-Rider Matching',
@@ -28,6 +32,7 @@ export class AppController {
     };
   }
 
+  @Public()
   @Get('health')
   healthCheck() {
     return {

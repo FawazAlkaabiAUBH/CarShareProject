@@ -1,91 +1,138 @@
 import { Injectable } from '@nestjs/common';
 import { Booking } from '../entities/booking.entity';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class BookingRepository {
-  private bookings: Map<number, Booking> = new Map();
-  private currentId = 1;
+  constructor(private readonly db: DatabaseService) {}
 
   findById(bookingId: number): Booking | undefined {
-    return this.bookings.get(bookingId);
-  }
+    const row = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM bookings WHERE bookingId = ?')
+      .get(bookingId) as any;
 
-  findByRider(riderId: number): Booking[] {
-    return Array.from(this.bookings.values()).filter(
-      (b) => b.riderId === riderId,
-    );
+    return row ? this.mapToEntity(row) : undefined;
   }
 
   findByRide(rideId: number): Booking[] {
-    return Array.from(this.bookings.values()).filter(
-      (b) => b.rideId === rideId,
-    );
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM bookings WHERE rideId = ?')
+      .all(rideId) as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
   }
 
-  findActiveByRider(riderId: number): Booking[] {
-    return Array.from(this.bookings.values()).filter(
-      (b) =>
-        b.riderId === riderId &&
-        (b.bookingStatus === 'PENDING' || b.bookingStatus === 'CONFIRMED'),
-    );
+  findByRider(riderId: number): Booking[] {
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM bookings WHERE riderId = ?')
+      .all(riderId) as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
+  }
+
+  findAll(): Booking[] {
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM bookings')
+      .all() as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
   }
 
   save(booking: Partial<Booking>): Booking {
-    if (!booking.bookingId) {
-      booking.bookingId = this.currentId++;
-      booking.createdAt = new Date();
-      booking.bookingStatus = booking.bookingStatus || 'PENDING';
-      booking.bookingTime = booking.bookingTime || new Date();
-    }
-    booking.updatedAt = new Date();
+    const now = new Date().toISOString();
 
-    const fullBooking = new Booking(booking as Booking);
-    this.bookings.set(fullBooking.bookingId, fullBooking);
-    return fullBooking;
+    if (!booking.bookingId) {
+      // Insert new booking
+      const stmt = this.db.getDatabase().prepare(`
+        INSERT INTO bookings (rideId, riderId, seatsBooked, totalFare, bookingStatus, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const info = stmt.run(
+        booking.rideId,
+        booking.riderId,
+        booking.seatsBooked!,
+        booking.totalFare!,
+        booking.bookingStatus || 'PENDING',
+        now,
+        now,
+      );
+
+      return this.findById(info.lastInsertRowid as number)!;
+    } else {
+      // Update existing booking
+      const stmt = this.db.getDatabase().prepare(`
+        UPDATE bookings
+        SET rideId = ?, riderId = ?, seatsBooked = ?, totalFare = ?, bookingStatus = ?, updatedAt = ?
+        WHERE bookingId = ?
+      `);
+
+      stmt.run(
+        booking.rideId,
+        booking.riderId,
+        booking.seatsBooked!,
+        booking.totalFare!,
+        booking.bookingStatus,
+        now,
+        booking.bookingId,
+      );
+
+      return this.findById(booking.bookingId)!;
+    }
   }
 
   delete(bookingId: number): void {
-    this.bookings.delete(bookingId);
+    this.db
+      .getDatabase()
+      .prepare('DELETE FROM bookings WHERE bookingId = ?')
+      .run(bookingId);
   }
 
-  updateStatus(bookingId: number, status: Booking['bookingStatus']): void {
-    const booking = this.bookings.get(bookingId);
-    if (booking) {
-      booking.bookingStatus = status;
-      booking.updatedAt = new Date();
-
-      if (status === 'CONFIRMED' && !booking.assignedTime) {
-        booking.assignedTime = new Date();
-      } else if (status === 'COMPLETED' && !booking.completedTime) {
-        booking.completedTime = new Date();
-      }
-    }
+  updateStatus(bookingId: number, status: string): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE bookings SET bookingStatus = ?, updatedAt = ? WHERE bookingId = ?',
+      )
+      .run(status, new Date().toISOString(), bookingId);
   }
 
-  assignDriver(bookingId: number, driverId: number): void {
-    const booking = this.bookings.get(bookingId);
-    if (booking) {
-      booking.driverId = driverId;
-      booking.assignedTime = new Date();
-      booking.updatedAt = new Date();
-    }
+  setCancellationReason(
+    bookingId: number,
+    reason: string,
+    cancelledBy: number,
+  ): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE bookings SET cancellationReason = ?, cancelledBy = ?, updatedAt = ? WHERE bookingId = ?',
+      )
+      .run(reason, cancelledBy, new Date().toISOString(), bookingId);
   }
 
-  markCompleted(bookingId: number, completedTime: Date): void {
-    const booking = this.bookings.get(bookingId);
-    if (booking) {
-      booking.completedTime = completedTime;
-      booking.bookingStatus = 'COMPLETED';
-      booking.updatedAt = new Date();
-    }
+  markCompleted(bookingId: number, completedAt: Date): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE bookings SET bookingStatus = ?, completedAt = ?, updatedAt = ? WHERE bookingId = ?',
+      )
+      .run('COMPLETED', completedAt.toISOString(), new Date().toISOString(), bookingId);
   }
 
-  setCancellationReason(bookingId: number, reason: string): void {
-    const booking = this.bookings.get(bookingId);
-    if (booking) {
-      booking.cancellationReason = reason;
-      booking.bookingStatus = 'CANCELLED';
-      booking.updatedAt = new Date();
-    }
+  private mapToEntity(row: any): Booking {
+    return new Booking({
+      bookingId: row.bookingId,
+      rideId: row.rideId,
+      riderId: row.riderId,
+      seatsBooked: row.seatsBooked,
+      totalFare: row.totalFare,
+      bookingStatus: row.bookingStatus,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+    });
   }
 }

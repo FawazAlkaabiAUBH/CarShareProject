@@ -19,25 +19,8 @@ export class DriverService {
     return driver;
   }
 
-  updateVehicleDetails(
-    driverId: number,
-    vehicleInfo: string,
-    vehiclePlate: string,
-    vehicleType: string,
-  ): void {
-    this.driverRepository.updateVehicle(
-      driverId,
-      vehicleInfo,
-      vehiclePlate,
-      vehicleType,
-    );
-  }
-
-  updateAvailabilityStatus(
-    driverId: number,
-    status: 'AVAILABLE' | 'BUSY' | 'OFFLINE',
-  ): void {
-    this.driverRepository.updateAvailability(driverId, status);
+  updateVehicle(driverId: number, vehicleInfo: string): void {
+    this.driverRepository.updateVehicle(driverId, vehicleInfo);
   }
 
   updateDriverLicense(driverId: number, licenseNumber: string): void {

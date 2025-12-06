@@ -1,128 +1,191 @@
 import { Injectable } from '@nestjs/common';
 import { Ride } from '../entities/ride.entity';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class RideRepository {
-  private rides: Map<number, Ride> = new Map();
-  private currentId = 1;
-
-  constructor() {
-    this.seed();
-  }
-
-  private seed() {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    tomorrow.setHours(8, 0, 0, 0);
-
-    const testRide = new Ride({
-      rideId: 1,
-      driverId: 1,
-      riderId: null,
-      pickupLocation: 'Seef District',
-      dropoffLocation: 'AUBH Campus',
-      pickupTime: tomorrow,
-      dropoffTime: null,
-      rideStatus: 'AVAILABLE',
-      fareEstimate: 2.5,
-      availableSeats: 3,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-
-    this.rides.set(testRide.rideId, testRide);
-    this.currentId = 2;
-  }
+  constructor(private readonly db: DatabaseService) {}
 
   findById(rideId: number): Ride | undefined {
-    return this.rides.get(rideId);
+    const row = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM rides WHERE rideId = ?')
+      .get(rideId) as any;
+
+    return row ? this.mapToEntity(row) : undefined;
   }
 
   findByDriver(driverId: number): Ride[] {
-    return Array.from(this.rides.values()).filter(
-      (r) => r.driverId === driverId,
-    );
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM rides WHERE driverId = ?')
+      .all(driverId) as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
   }
 
   findByRider(riderId: number): Ride[] {
-    return Array.from(this.rides.values()).filter((r) => r.riderId === riderId);
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM rides WHERE riderId = ?')
+      .all(riderId) as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
   }
 
   findAvailable(pickupLocation?: string, at?: Date): Ride[] {
-    let rides = Array.from(this.rides.values()).filter(
-      (r) => r.rideStatus === 'AVAILABLE' && r.availableSeats > 0,
-    );
+    let query = `SELECT * FROM rides WHERE rideStatus = 'AVAILABLE' AND availableSeats > 0`;
+    const params: any[] = [];
 
     if (pickupLocation) {
-      rides = rides.filter((r) =>
-        r.pickupLocation.toLowerCase().includes(pickupLocation.toLowerCase()),
-      );
+      query += ` AND pickupLocation LIKE ? COLLATE NOCASE`;
+      params.push(`%${pickupLocation}%`);
     }
 
     if (at) {
-      rides = rides.filter((r) => r.pickupTime >= at);
+      query += ` AND pickupTime >= ?`;
+      params.push(at.toISOString());
     }
 
-    return rides;
+    const rows = this.db.getDatabase().prepare(query).all(...params) as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
   }
 
   save(ride: Partial<Ride>): Ride {
-    if (!ride.rideId) {
-      ride.rideId = this.currentId++;
-      ride.createdAt = new Date();
-      ride.rideStatus = ride.rideStatus || 'AVAILABLE';
-    }
-    ride.updatedAt = new Date();
+    const now = new Date().toISOString();
 
-    const fullRide = new Ride(ride as Ride);
-    this.rides.set(fullRide.rideId, fullRide);
-    return fullRide;
+    if (!ride.rideId) {
+      // Insert new ride
+      const stmt = this.db.getDatabase().prepare(`
+        INSERT INTO rides (driverId, riderId, pickupLocation, dropoffLocation, pickupTime, dropoffTime, rideStatus, fareEstimate, availableSeats, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const info = stmt.run(
+        ride.driverId,
+        ride.riderId || null,
+        ride.pickupLocation,
+        ride.dropoffLocation,
+        ride.pickupTime instanceof Date
+          ? ride.pickupTime.toISOString()
+          : ride.pickupTime,
+        ride.dropoffTime
+          ? ride.dropoffTime instanceof Date
+            ? ride.dropoffTime.toISOString()
+            : ride.dropoffTime
+          : null,
+        ride.rideStatus || 'AVAILABLE',
+        ride.fareEstimate,
+        ride.availableSeats,
+        now,
+        now,
+      );
+
+      return this.findById(info.lastInsertRowid as number)!;
+    } else {
+      // Update existing ride
+      const stmt = this.db.getDatabase().prepare(`
+        UPDATE rides
+        SET driverId = ?, riderId = ?, pickupLocation = ?, dropoffLocation = ?, pickupTime = ?, dropoffTime = ?, rideStatus = ?, fareEstimate = ?, availableSeats = ?, updatedAt = ?
+        WHERE rideId = ?
+      `);
+
+      stmt.run(
+        ride.driverId,
+        ride.riderId || null,
+        ride.pickupLocation,
+        ride.dropoffLocation,
+        ride.pickupTime instanceof Date
+          ? ride.pickupTime.toISOString()
+          : ride.pickupTime,
+        ride.dropoffTime
+          ? ride.dropoffTime instanceof Date
+            ? ride.dropoffTime.toISOString()
+            : ride.dropoffTime
+          : null,
+        ride.rideStatus,
+        ride.fareEstimate,
+        ride.availableSeats,
+        now,
+        ride.rideId,
+      );
+
+      return this.findById(ride.rideId)!;
+    }
   }
 
   delete(rideId: number): void {
-    this.rides.delete(rideId);
+    this.db
+      .getDatabase()
+      .prepare('DELETE FROM rides WHERE rideId = ?')
+      .run(rideId);
   }
 
-  updateStatus(rideId: number, status: Ride['rideStatus']): void {
-    const ride = this.rides.get(rideId);
-    if (ride) {
-      ride.rideStatus = status;
-      ride.updatedAt = new Date();
-    }
+  updateStatus(rideId: number, status: string): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE rides SET rideStatus = ?, updatedAt = ? WHERE rideId = ?',
+      )
+      .run(status, new Date().toISOString(), rideId);
   }
 
   updateLocations(rideId: number, pickup: string, dropoff: string): void {
-    const ride = this.rides.get(rideId);
-    if (ride) {
-      ride.pickupLocation = pickup;
-      ride.dropoffLocation = dropoff;
-      ride.updatedAt = new Date();
-    }
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE rides SET pickupLocation = ?, dropoffLocation = ?, updatedAt = ? WHERE rideId = ?',
+      )
+      .run(pickup, dropoff, new Date().toISOString(), rideId);
   }
 
   updateFareEstimate(rideId: number, estimate: number): void {
-    const ride = this.rides.get(rideId);
-    if (ride) {
-      ride.fareEstimate = estimate;
-      ride.updatedAt = new Date();
-    }
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE rides SET fareEstimate = ?, updatedAt = ? WHERE rideId = ?',
+      )
+      .run(estimate, new Date().toISOString(), rideId);
   }
 
   decrementSeats(rideId: number): boolean {
-    const ride = this.rides.get(rideId);
+    const ride = this.findById(rideId);
     if (ride && ride.availableSeats > 0) {
-      ride.availableSeats--;
-      ride.updatedAt = new Date();
+      this.db
+        .getDatabase()
+        .prepare(
+          'UPDATE rides SET availableSeats = availableSeats - 1, updatedAt = ? WHERE rideId = ?',
+        )
+        .run(new Date().toISOString(), rideId);
       return true;
     }
     return false;
   }
 
   incrementSeats(rideId: number): void {
-    const ride = this.rides.get(rideId);
-    if (ride) {
-      ride.availableSeats++;
-      ride.updatedAt = new Date();
-    }
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE rides SET availableSeats = availableSeats + 1, updatedAt = ? WHERE rideId = ?',
+      )
+      .run(new Date().toISOString(), rideId);
+  }
+
+  private mapToEntity(row: any): Ride {
+    return new Ride({
+      rideId: row.rideId,
+      driverId: row.driverId,
+      riderId: row.riderId,
+      pickupLocation: row.pickupLocation,
+      dropoffLocation: row.dropoffLocation,
+      pickupTime: new Date(row.pickupTime),
+      dropoffTime: row.dropoffTime ? new Date(row.dropoffTime) : undefined,
+      rideStatus: row.rideStatus,
+      fareEstimate: row.fareEstimate,
+      availableSeats: row.availableSeats,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+    });
   }
 }

@@ -2,6 +2,7 @@ export class User {
   userId: number;
   name: string;
   email: string;
+  password: string; // Hashed password
   phoneNumber: string;
   role: 'RIDER' | 'DRIVER'; // Simplified - user can be both
   accountStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';

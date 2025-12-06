@@ -1,13 +1,10 @@
 export class Booking {
   bookingId: number;
-  riderId: number;
-  driverId: number;
   rideId: number;
+  riderId: number;
+  seatsBooked: number;
+  totalFare: number;
   bookingStatus: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
-  bookingTime: Date;
-  assignedTime: Date | null;
-  completedTime: Date | null;
-  cancellationReason: string | null;
   createdAt: Date;
   updatedAt: Date;
 

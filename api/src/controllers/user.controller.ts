@@ -10,15 +10,11 @@ import {
 } from '@nestjs/common';
 import { UserService } from '../services/user.service';
 import { CreateUserDto, UpdateUserDto } from '../dto/user.dto';
+import { Public } from '../auth/public.decorator';
 
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
-
-  @Post()
-  createUser(@Body() createUserDto: CreateUserDto) {
-    return this.userService.createUser(createUserDto);
-  }
 
   @Get()
   getAllUsers() {
@@ -43,11 +39,5 @@ export class UserController {
   deactivateUser(@Param('id', ParseIntPipe) id: number) {
     this.userService.deactivateAccount(id);
     return { message: 'User deactivated successfully' };
-  }
-
-  @Post('login')
-  @HttpCode(200)
-  login(@Body() loginDto: { email: string; password: string }) {
-    return this.userService.authenticate(loginDto.email, loginDto.password);
   }
 }

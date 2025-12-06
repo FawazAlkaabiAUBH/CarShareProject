@@ -33,8 +33,9 @@ export class BookingService {
     // Create booking
     const booking = this.bookingRepository.save({
       riderId: createBookingDto.riderId,
-      driverId: ride.driverId,
       rideId: createBookingDto.rideId,
+      seatsBooked: createBookingDto.seatsBooked || 1,
+      totalFare: ride.fareEstimate * (createBookingDto.seatsBooked || 1),
       bookingStatus: 'PENDING',
     });
 
@@ -50,7 +51,7 @@ export class BookingService {
     return booking;
   }
 
-  cancelBooking(bookingId: number, reason?: string): Booking {
+  cancelBooking(bookingId: number, reason?: string, cancelledBy?: number): Booking {
     const booking = this.bookingRepository.findById(bookingId);
     if (!booking) {
       throw new Error(`Booking with ID ${bookingId} not found`);
@@ -63,6 +64,7 @@ export class BookingService {
     this.bookingRepository.setCancellationReason(
       bookingId,
       reason || 'Cancelled by user',
+      cancelledBy || booking.riderId,
     );
 
     // Update ride status back to available

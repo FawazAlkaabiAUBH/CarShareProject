@@ -1,6 +1,14 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
+// Auth
+import { AuthModule } from './auth/auth.module';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
+
+// Database
+import { DatabaseService } from './database/database.service';
 
 // Controllers
 import { UserController } from './controllers/user.controller';
@@ -27,7 +35,7 @@ import { DriverRepository } from './repositories/driver.repository';
 import { RiderRepository } from './repositories/rider.repository';
 
 @Module({
-  imports: [],
+  imports: [AuthModule],
   controllers: [
     AppController,
     UserController,
@@ -39,6 +47,13 @@ import { RiderRepository } from './repositories/rider.repository';
   ],
   providers: [
     AppService,
+    // Global JWT Auth Guard
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    // Database
+    DatabaseService,
     // Services
     UserService,
     RideService,

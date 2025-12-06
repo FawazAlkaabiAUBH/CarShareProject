@@ -1,130 +1,173 @@
 import { Injectable } from '@nestjs/common';
 import { Driver } from '../entities/driver.entity';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class DriverRepository {
-  private drivers: Map<number, Driver> = new Map();
-  private currentId = 1;
-
-  constructor() {
-    this.seed();
-  }
-
-  private seed() {
-    const testDrivers = [
-      new Driver({
-        driverId: 1,
-        userId: 1,
-        licenseNumber: 'BH123456',
-        vehicleInfo: 'Toyota Camry 2020',
-        vehiclePlate: '12345',
-        vehicleType: 'Sedan',
-        availabilityStatus: 'AVAILABLE',
-        totalRidesPosted: 0,
-        averageRating: 0,
-      }),
-      new Driver({
-        driverId: 2,
-        userId: 3,
-        licenseNumber: 'BH654321',
-        vehicleInfo: 'Honda Civic 2021',
-        vehiclePlate: '67890',
-        vehicleType: 'Sedan',
-        availabilityStatus: 'AVAILABLE',
-        totalRidesPosted: 0,
-        averageRating: 0,
-      }),
-    ];
-
-    testDrivers.forEach((driver) => {
-      this.drivers.set(driver.driverId, driver);
-      this.currentId = Math.max(this.currentId, driver.driverId + 1);
-    });
-  }
+  constructor(private readonly db: DatabaseService) {}
 
   findById(driverId: number): Driver | undefined {
-    return this.drivers.get(driverId);
+    const row = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM drivers WHERE driverId = ?')
+      .get(driverId) as any;
+
+    return row ? this.mapToEntity(row) : undefined;
   }
 
   findByUserId(userId: number): Driver | undefined {
-    return Array.from(this.drivers.values()).find((d) => d.userId === userId);
+    const row = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM drivers WHERE userId = ?')
+      .get(userId) as any;
+
+    return row ? this.mapToEntity(row) : undefined;
   }
 
-  findByAvailability(status: string): Driver[] {
-    return Array.from(this.drivers.values()).filter(
-      (d) => d.availabilityStatus === status,
-    );
-  }
+  findVerified(): Driver[] {
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM drivers WHERE isVerified = 1')
+      .all() as any[];
 
-  findByVehicleType(type: string): Driver[] {
-    return Array.from(this.drivers.values()).filter(
-      (d) => d.vehicleType === type,
-    );
-  }
-
-  save(driver: Partial<Driver>): Driver {
-    if (!driver.driverId) {
-      driver.driverId = this.currentId++;
-      driver.totalRidesPosted = driver.totalRidesPosted || 0;
-      driver.averageRating = driver.averageRating || 0;
-    }
-
-    const fullDriver = new Driver(driver as Driver);
-    this.drivers.set(fullDriver.driverId, fullDriver);
-    return fullDriver;
-  }
-
-  delete(driverId: number): void {
-    this.drivers.delete(driverId);
-  }
-
-  updateAvailability(driverId: number, status: Driver['availabilityStatus']): void {
-    const driver = this.drivers.get(driverId);
-    if (driver) {
-      driver.availabilityStatus = status;
-    }
-  }
-
-  updateVehicle(
-    driverId: number,
-    info: string,
-    plate: string,
-    type: string,
-  ): void {
-    const driver = this.drivers.get(driverId);
-    if (driver) {
-      driver.vehicleInfo = info;
-      driver.vehiclePlate = plate;
-      driver.vehicleType = type;
-    }
-  }
-
-  updateLicense(driverId: number, licenseNumber: string): void {
-    const driver = this.drivers.get(driverId);
-    if (driver) {
-      driver.licenseNumber = licenseNumber;
-    }
-  }
-
-  incrementTotalRides(driverId: number): void {
-    const driver = this.drivers.get(driverId);
-    if (driver) {
-      driver.totalRidesPosted++;
-    }
+    return rows.map((row) => this.mapToEntity(row));
   }
 
   findAll(): Driver[] {
-    return Array.from(this.drivers.values());
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM drivers')
+      .all() as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
   }
 
-  findAvailable(): Driver[] {
-    return this.findByAvailability('AVAILABLE');
+  save(driver: Partial<Driver>): Driver {
+    const now = new Date().toISOString();
+
+    if (!driver.driverId) {
+      // Insert new driver
+      const stmt = this.db.getDatabase().prepare(`
+        INSERT INTO drivers (userId, vehicleInfo, licenseNumber, rating, totalRides, isVerified, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      const info = stmt.run(
+        driver.userId,
+        driver.vehicleInfo,
+        driver.licenseNumber,
+        driver.rating ?? 0,
+        driver.totalRides ?? 0,
+        driver.isVerified ?? false ? 1 : 0,
+        now,
+        now,
+      );
+
+      return this.findById(info.lastInsertRowid as number)!;
+    } else {
+      // Update existing driver
+      const stmt = this.db.getDatabase().prepare(`
+        UPDATE drivers
+        SET userId = ?, vehicleInfo = ?, licenseNumber = ?, rating = ?, totalRides = ?, isVerified = ?, updatedAt = ?
+        WHERE driverId = ?
+      `);
+
+      stmt.run(
+        driver.userId,
+        driver.vehicleInfo,
+        driver.licenseNumber,
+        driver.rating!,
+        driver.totalRides!,
+        driver.isVerified! ? 1 : 0,
+        now,
+        driver.driverId,
+      );
+
+      return this.findById(driver.driverId)!;
+    }
+  }
+
+  delete(driverId: number): void {
+    this.db
+      .getDatabase()
+      .prepare('DELETE FROM drivers WHERE driverId = ?')
+      .run(driverId);
   }
 
   updateRating(driverId: number, rating: number): void {
-    const driver = this.drivers.get(driverId);
-    if (driver) {
-      driver.averageRating = rating;
-    }
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE drivers SET rating = ?, updatedAt = ? WHERE driverId = ?',
+      )
+      .run(rating, new Date().toISOString(), driverId);
+  }
+
+  incrementTotalRides(driverId: number): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE drivers SET totalRides = totalRides + 1, updatedAt = ? WHERE driverId = ?',
+      )
+      .run(new Date().toISOString(), driverId);
+  }
+
+  verify(driverId: number, isVerified: boolean): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE drivers SET isVerified = ?, updatedAt = ? WHERE driverId = ?',
+      )
+      .run(isVerified ? 1 : 0, new Date().toISOString(), driverId);
+  }
+
+  updateVehicle(driverId: number, vehicleInfo: string): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE drivers SET vehicleInfo = ?, updatedAt = ? WHERE driverId = ?',
+      )
+      .run(vehicleInfo, new Date().toISOString(), driverId);
+  }
+
+  updateAvailability(driverId: number, status: boolean): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE drivers SET isAvailable = ?, updatedAt = ? WHERE driverId = ?',
+      )
+      .run(status ? 1 : 0, new Date().toISOString(), driverId);
+  }
+
+  updateLicense(driverId: number, licenseNumber: string): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE drivers SET licenseNumber = ?, updatedAt = ? WHERE driverId = ?',
+      )
+      .run(licenseNumber, new Date().toISOString(), driverId);
+  }
+
+  findAvailable(): Driver[] {
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM drivers WHERE isAvailable = 1')
+      .all() as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
+  }
+
+  private mapToEntity(row: any): Driver {
+    return new Driver({
+      driverId: row.driverId,
+      userId: row.userId,
+      vehicleInfo: row.vehicleInfo,
+      licenseNumber: row.licenseNumber,
+      rating: row.rating,
+      totalRides: row.totalRides,
+      isVerified: row.isVerified === 1,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+    });
   }
 }

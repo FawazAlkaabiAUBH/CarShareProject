@@ -1,80 +1,138 @@
 import { Injectable } from '@nestjs/common';
 import { Rider } from '../entities/rider.entity';
+import { DatabaseService } from '../database/database.service';
 
 @Injectable()
 export class RiderRepository {
-  private riders: Map<number, Rider> = new Map();
-  private currentId = 1;
-
-  constructor() {
-    this.seed();
-  }
-
-  private seed() {
-    const testRider = new Rider({
-      riderId: 1,
-      userId: 2,
-      defaultPickupLocation: 'Seef District',
-      loyaltyPoints: 0,
-      paymentMethod: 'Cash',
-      preferredDriver: '',
-    });
-
-    this.riders.set(testRider.riderId, testRider);
-    this.currentId = 2;
-  }
+  constructor(private readonly db: DatabaseService) {}
 
   findById(riderId: number): Rider | undefined {
-    return this.riders.get(riderId);
+    const row = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM riders WHERE riderId = ?')
+      .get(riderId) as any;
+
+    return row ? this.mapToEntity(row) : undefined;
   }
 
   findByUserId(userId: number): Rider | undefined {
-    return Array.from(this.riders.values()).find((r) => r.userId === userId);
-  }
+    const row = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM riders WHERE userId = ?')
+      .get(userId) as any;
 
-  findByPreferredDriver(driverId: number): Rider[] {
-    return Array.from(this.riders.values()).filter(
-      (r) => r.preferredDriver === String(driverId),
-    );
-  }
-
-  save(rider: Partial<Rider>): Rider {
-    if (!rider.riderId) {
-      rider.riderId = this.currentId++;
-      rider.loyaltyPoints = rider.loyaltyPoints || 0;
-    }
-
-    const fullRider = new Rider(rider as Rider);
-    this.riders.set(fullRider.riderId, fullRider);
-    return fullRider;
-  }
-
-  delete(riderId: number): void {
-    this.riders.delete(riderId);
-  }
-
-  updatePaymentMethod(riderId: number, method: string): void {
-    const rider = this.riders.get(riderId);
-    if (rider) {
-      rider.paymentMethod = method;
-    }
-  }
-
-  updatePickupLocation(riderId: number, location: string): void {
-    const rider = this.riders.get(riderId);
-    if (rider) {
-      rider.defaultPickupLocation = location;
-    }
-  }
-
-  incrementLoyaltyPoints(riderId: number, delta: number): void {
-    const rider = this.riders.get(riderId);
-    if (rider) {
-      rider.loyaltyPoints += delta;
-    }
+    return row ? this.mapToEntity(row) : undefined;
   }
 
   findAll(): Rider[] {
-    return Array.from(this.riders.values());
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM riders')
+      .all() as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
+  }
+
+  save(rider: Partial<Rider>): Rider {
+    const now = new Date().toISOString();
+
+    if (!rider.riderId) {
+      // Insert new rider
+      const stmt = this.db.getDatabase().prepare(`
+        INSERT INTO riders (userId, preferredPickupLocation, rating, totalRides, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `);
+
+      const info = stmt.run(
+        rider.userId,
+        rider.preferredPickupLocation ?? null,
+        rider.rating ?? 0,
+        rider.totalRides ?? 0,
+        now,
+        now,
+      );
+
+      return this.findById(info.lastInsertRowid as number)!;
+    } else {
+      // Update existing rider
+      const stmt = this.db.getDatabase().prepare(`
+        UPDATE riders
+        SET userId = ?, preferredPickupLocation = ?, rating = ?, totalRides = ?, updatedAt = ?
+        WHERE riderId = ?
+      `);
+
+      stmt.run(
+        rider.userId,
+        rider.preferredPickupLocation ?? null,
+        rider.rating!,
+        rider.totalRides!,
+        now,
+        rider.riderId,
+      );
+
+      return this.findById(rider.riderId)!;
+    }
+  }
+
+  delete(riderId: number): void {
+    this.db
+      .getDatabase()
+      .prepare('DELETE FROM riders WHERE riderId = ?')
+      .run(riderId);
+  }
+
+  updateRating(riderId: number, rating: number): void {
+    this.db
+      .getDatabase()
+      .prepare('UPDATE riders SET rating = ?, updatedAt = ? WHERE riderId = ?')
+      .run(rating, new Date().toISOString(), riderId);
+  }
+
+  incrementTotalRides(riderId: number): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE riders SET totalRides = totalRides + 1, updatedAt = ? WHERE riderId = ?',
+      )
+      .run(new Date().toISOString(), riderId);
+  }
+
+  updatePaymentMethod(riderId: number, method: string): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE riders SET paymentMethod = ?, updatedAt = ? WHERE riderId = ?',
+      )
+      .run(method, new Date().toISOString(), riderId);
+  }
+
+  updatePickupLocation(riderId: number, location: string): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE riders SET preferredPickupLocation = ?, updatedAt = ? WHERE riderId = ?',
+      )
+      .run(location, new Date().toISOString(), riderId);
+  }
+
+  incrementLoyaltyPoints(riderId: number, points: number): void {
+    this.db
+      .getDatabase()
+      .prepare(
+        'UPDATE riders SET loyaltyPoints = loyaltyPoints + ?, updatedAt = ? WHERE riderId = ?',
+      )
+      .run(points, new Date().toISOString(), riderId);
+  }
+
+  private mapToEntity(row: any): Rider {
+    return new Rider({
+      riderId: row.riderId,
+      userId: row.userId,
+      preferredPickupLocation: row.preferredPickupLocation,
+      rating: row.rating,
+      totalRides: row.totalRides,
+      createdAt: new Date(row.createdAt),
+      updatedAt: new Date(row.updatedAt),
+    });
   }
 }

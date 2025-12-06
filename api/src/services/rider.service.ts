@@ -28,8 +28,8 @@ export class RiderService {
     if (!rider) {
       throw new Error(`Rider with ID ${riderId} not found`);
     }
-    rider.preferredDriver = driverId;
-    return this.riderRepository.save(rider);
+    // Note: preferredDriver field removed from schema
+    return rider;
   }
 
   updatePickupLocation(riderId: number, location: string): void {
