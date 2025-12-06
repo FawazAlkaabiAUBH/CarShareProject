@@ -21,7 +21,10 @@ export class RideController {
   }
 
   @Get('search')
-  searchRides(@Query('pickupLocation') pickupLocation?: string, @Query('dropoffLocation') dropoffLocation?: string) {
+  searchRides(
+    @Query('pickupLocation') pickupLocation?: string,
+    @Query('dropoffLocation') dropoffLocation?: string,
+  ) {
     if (!pickupLocation && !dropoffLocation) {
       return { message: 'Please provide at least one search parameter' };
     }
