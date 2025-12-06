@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { Check } from 'lucide-react';
 
 export default function VerificationPage() {
   const router = useRouter();
@@ -45,9 +46,7 @@ export default function VerificationPage() {
         {/* Success Icon */}
         <div className="flex justify-center mb-8">
           <div className="w-[108px] h-[108px] bg-[#dc143c] rounded-full flex items-center justify-center">
-            <svg className="w-16 h-16" viewBox="0 0 64 64" fill="none">
-              <path d="M16 32l12 12 20-24" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Check className="w-16 h-16 text-white" strokeWidth={3} />
           </div>
         </div>
 

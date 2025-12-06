@@ -5,26 +5,34 @@ import { useState, useEffect } from 'react';
 export function useAuth() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
-    if (userData) {
+    const accessToken = localStorage.getItem('access_token');
+    
+    if (userData && accessToken) {
       setUser(JSON.parse(userData));
+      setToken(accessToken);
     }
     setLoading(false);
   }, []);
 
-  const login = (userData: any) => {
+  const login = (userData: any, accessToken: string) => {
     localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('access_token', accessToken);
     setUser(userData);
+    setToken(accessToken);
   };
 
   const logout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
     setUser(null);
+    setToken(null);
   };
 
-  return { user, loading, login, logout };
+  return { user, token, loading, login, logout };
 }
 
 export function useLocalStorage<T>(key: string, initialValue: T) {

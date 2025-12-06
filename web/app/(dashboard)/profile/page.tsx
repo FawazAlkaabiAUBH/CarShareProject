@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
+import { ChevronLeft, MoreVertical, ChevronRight, User, Car, List, CreditCard, HelpCircle, Settings } from 'lucide-react';
 
 interface User {
   userId: number;
@@ -28,6 +29,7 @@ export default function ProfilePage() {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('access_token');
     router.push('/');
   };
 
@@ -39,22 +41,12 @@ export default function ProfilePage() {
       <div className="bg-[#101828] border-b-2 border-white/10 p-6">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <IconButton
-            icon={
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="#d1d5dc" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            }
+            icon={<ChevronLeft className="w-6 h-6 text-slate-300" />}
             onClick={() => router.back()}
           />
           <h1 className="text-xl font-medium text-white">Profile</h1>
           <IconButton
-            icon={
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="1" fill="#d1d5dc" />
-                <circle cx="12" cy="6" r="1" fill="#d1d5dc" />
-                <circle cx="12" cy="18" r="1" fill="#d1d5dc" />
-              </svg>
-            }
+            icon={<MoreVertical className="w-6 h-6 text-slate-300" />}
             onClick={() => {}}
           />
         </div>
@@ -111,90 +103,60 @@ export default function ProfilePage() {
           <Card variant="glass" className="cursor-pointer hover:bg-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 text-[#dc143c]" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
-                  <path d="M4 20a8 8 0 0116 0" stroke="currentColor" strokeWidth="2" />
-                </svg>
+                <User className="w-6 h-6 text-[#dc143c]" />
                 <span className="text-white">Edit Profile</span>
               </div>
-              <svg className="w-5 h-5 text-[#99a1af]" viewBox="0 0 20 20" fill="none">
-                <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              <ChevronRight className="w-5 h-5 text-[#99a1af]" />
             </div>
           </Card>
 
           <Card variant="glass" className="cursor-pointer hover:bg-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 text-[#dc143c]" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                  <circle cx="8" cy="16" r="2" stroke="currentColor" strokeWidth="2" />
-                  <circle cx="16" cy="16" r="2" stroke="currentColor" strokeWidth="2" />
-                </svg>
+                <Car className="w-6 h-6 text-[#dc143c]" />
                 <span className="text-white">My Vehicles</span>
               </div>
-              <svg className="w-5 h-5 text-[#99a1af]" viewBox="0 0 20 20" fill="none">
-                <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              <ChevronRight className="w-5 h-5 text-[#99a1af]" />
             </div>
           </Card>
 
           <Card variant="glass" className="cursor-pointer hover:bg-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 text-[#dc143c]" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 7H4M20 12H4M20 17H4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+                <List className="w-6 h-6 text-[#dc143c]" />
                 <span className="text-white">Ride History</span>
               </div>
-              <svg className="w-5 h-5 text-[#99a1af]" viewBox="0 0 20 20" fill="none">
-                <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              <ChevronRight className="w-5 h-5 text-[#99a1af]" />
             </div>
           </Card>
 
           <Card variant="glass" className="cursor-pointer hover:bg-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 text-[#dc143c]" viewBox="0 0 24 24" fill="none">
-                  <rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" />
-                  <path d="M3 10h18" stroke="currentColor" strokeWidth="2" />
-                </svg>
+                <CreditCard className="w-6 h-6 text-[#dc143c]" />
                 <span className="text-white">Payment Methods</span>
               </div>
-              <svg className="w-5 h-5 text-[#99a1af]" viewBox="0 0 20 20" fill="none">
-                <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              <ChevronRight className="w-5 h-5 text-[#99a1af]" />
             </div>
           </Card>
 
           <Card variant="glass" className="cursor-pointer hover:bg-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 text-[#dc143c]" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" />
-                  <path d="M12 8v4M12 16h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
+                <HelpCircle className="w-6 h-6 text-[#dc143c]" />
                 <span className="text-white">Help & Support</span>
               </div>
-              <svg className="w-5 h-5 text-[#99a1af]" viewBox="0 0 20 20" fill="none">
-                <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              <ChevronRight className="w-5 h-5 text-[#99a1af]" />
             </div>
           </Card>
 
           <Card variant="glass" className="cursor-pointer hover:bg-white/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <svg className="w-6 h-6 text-[#dc143c]" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                  <path d="M12 1v3M12 20v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M1 12h3M20 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12" stroke="currentColor" strokeWidth="2" />
-                </svg>
+                <Settings className="w-6 h-6 text-[#dc143c]" />
                 <span className="text-white">Settings</span>
               </div>
-              <svg className="w-5 h-5 text-[#99a1af]" viewBox="0 0 20 20" fill="none">
-                <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-              </svg>
+              <ChevronRight className="w-5 h-5 text-[#99a1af]" />
             </div>
           </Card>
         </div>

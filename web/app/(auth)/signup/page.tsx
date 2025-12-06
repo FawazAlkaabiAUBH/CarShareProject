@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { IconButton } from '@/components/ui/IconButton';
 import { apiClient } from '@/lib/api';
+import { ChevronLeft, User, Mail, Phone, Lock } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -34,16 +35,18 @@ export default function SignupPage() {
     setError('');
 
     try {
-      const response = await apiClient.post('/users', {
+      const response = await apiClient.post('/auth/register', {
         name: formData.name,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
+        password: formData.password,
         role: formData.role,
-        accountStatus: 'ACTIVE',
       });
 
       if (response.data) {
-        localStorage.setItem('user', JSON.stringify(response.data));
+        // Store JWT token and user data
+        localStorage.setItem('access_token', response.data.access_token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         router.push('/verification');
       }
     } catch (err: any) {
@@ -58,11 +61,7 @@ export default function SignupPage() {
       {/* Header */}
       <div className="p-6">
         <IconButton
-          icon={
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18l-6-6 6-6" stroke="#d1d5dc" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          }
+          icon={<ChevronLeft className="w-6 h-6 text-slate-300" />}
           onClick={() => step === 1 ? router.back() : setStep(1)}
         />
       </div>
@@ -101,12 +100,7 @@ export default function SignupPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                icon={
-                  <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                    <circle cx="10" cy="7" r="4" stroke="currentColor" strokeWidth="1.5" />
-                    <path d="M4 18a6 6 0 0112 0" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                }
+                icon={<User className="w-5 h-5" />}
               />
 
               <Input
@@ -116,12 +110,7 @@ export default function SignupPage() {
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 required
-                icon={
-                  <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                    <path d="M3 4h14a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" />
-                    <path d="M3 5l7 5 7-5" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                }
+                icon={<Mail className="w-5 h-5" />}
               />
 
               <Input
@@ -130,11 +119,7 @@ export default function SignupPage() {
                 placeholder="+973 XXXX XXXX"
                 value={formData.phoneNumber}
                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                icon={
-                  <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                    <path d="M3 5a2 2 0 012-2h1.586a1 1 0 01.707.293l1.5 1.5a1 1 0 01.293.707V7a1 1 0 01-.293.707l-1 1A9.953 9.953 0 0010.707 12l1-1A1 1 0 0112.414 11h1.586a1 1 0 01.707.293l1.5 1.5a1 1 0 01.293.707V15a2 2 0 01-2 2h-1C7.82 17 3 12.18 3 7V5z" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                }
+                icon={<Phone className="w-5 h-5" />}
               />
 
               <div>
@@ -181,12 +166,7 @@ export default function SignupPage() {
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 required
-                icon={
-                  <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                    <rect x="5" y="9" width="10" height="7" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                    <path d="M7 9V6a3 3 0 116 0v3" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                }
+                icon={<Lock className="w-5 h-5" />}
               />
 
               <Input
@@ -196,13 +176,19 @@ export default function SignupPage() {
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 required
+                icon={<Lock className="w-5 h-5" />}
+              />
+
+              <Input
+                type="password"
+                label="Confirm Password"
+                placeholder="Re-enter your password"
+                value={formData.confirmPassword}
+                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                required
+                icon={<Lock className="w-5 h-5" />}
+            
                 error={formData.confirmPassword && formData.password !== formData.confirmPassword ? 'Passwords do not match' : ''}
-                icon={
-                  <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                    <rect x="5" y="9" width="10" height="7" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                    <path d="M7 9V6a3 3 0 116 0v3" stroke="currentColor" strokeWidth="1.5" />
-                  </svg>
-                }
               />
 
               <div className="bg-white/5 border-2 border-white/10 rounded-[18px] p-4">

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { IconButton } from '@/components/ui/IconButton';
 import { apiClient } from '@/lib/api';
+import { ChevronLeft, Mail, Lock } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,8 +29,9 @@ export default function LoginPage() {
       });
 
       if (response.data) {
-        // Store user data in localStorage
-        localStorage.setItem('user', JSON.stringify(response.data));
+        // Store JWT token and user data separately
+        localStorage.setItem('access_token', response.data.access_token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
         router.push('/dashboard');
       }
     } catch (err: any) {
@@ -44,11 +46,7 @@ export default function LoginPage() {
       {/* Header */}
       <div className="p-6">
         <IconButton
-          icon={
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-              <path d="M15 18l-6-6 6-6" stroke="#d1d5dc" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          }
+          icon={<ChevronLeft className="w-6 h-6 text-slate-300" />}
           onClick={() => router.back()}
         />
       </div>
@@ -80,12 +78,7 @@ export default function LoginPage() {
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
-              icon={
-                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                  <path d="M3 4h14a1 1 0 011 1v10a1 1 0 01-1 1H3a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M3 5l7 5 7-5" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
-              }
+              icon={<Mail className="w-5 h-5" />}
             />
 
             <Input
@@ -95,12 +88,7 @@ export default function LoginPage() {
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               required
-              icon={
-                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                  <rect x="5" y="9" width="10" height="7" rx="1" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M7 9V6a3 3 0 116 0v3" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
-              }
+              icon={<Lock className="w-5 h-5" />}
             />
           </div>
 

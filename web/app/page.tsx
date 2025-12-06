@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
+import { Car, ShieldCheck, Users, Leaf } from 'lucide-react';
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -21,12 +22,7 @@ export default function WelcomePage() {
             
             {/* Logo Circle */}
             <div className="relative w-[180px] h-[180px] bg-gradient-to-b from-[#dc143c] to-[#8b0000] rounded-full border-4 border-white/10 shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)] flex items-center justify-center">
-              <svg className="w-[108px] h-[108px]" viewBox="0 0 108 108" fill="none">
-                <circle cx="54" cy="54" r="27" stroke="white" strokeWidth="6.75" fill="none" />
-                <circle cx="27" cy="81" r="9" stroke="white" strokeWidth="6.75" fill="none" />
-                <line x1="54" y1="81" x2="54" y2="99" stroke="white" strokeWidth="6.75" />
-                <circle cx="81" cy="81" r="9" stroke="white" strokeWidth="6.75" fill="none" />
-              </svg>
+              <Car className="w-[108px] h-[108px] text-white" strokeWidth={1.5} />
             </div>
           </div>
           
@@ -48,31 +44,21 @@ export default function WelcomePage() {
         <div className="grid grid-cols-3 gap-3 mb-12">
           <div className="bg-white/5 border-2 border-white/10 rounded-[18px] p-5 text-center">
             <div className="w-9 h-9 mx-auto mb-3">
-              <svg viewBox="0 0 36 36" fill="none">
-                <circle cx="18" cy="18" r="15" stroke="#dc143c" strokeWidth="3" />
-              </svg>
+              <ShieldCheck className="w-9 h-9 text-crimson" strokeWidth={2} />
             </div>
             <p className="text-lg text-[#d1d5dc]">Verified</p>
           </div>
           
           <div className="bg-white/5 border-2 border-white/10 rounded-[18px] p-5 text-center">
             <div className="w-9 h-9 mx-auto mb-3">
-              <svg viewBox="0 0 36 36" fill="none">
-                <path d="M6 27h9v-9H6v9zm0-18v9h9V9H6zm18 0h9v9h-9V9z" stroke="#dc143c" strokeWidth="3" />
-                <path d="M24 27h9v-9h-9v9z" stroke="#dc143c" strokeWidth="3" />
-              </svg>
+              <Users className="w-9 h-9 text-crimson" strokeWidth={2} />
             </div>
             <p className="text-lg text-[#d1d5dc]">Students</p>
           </div>
           
           <div className="bg-white/5 border-2 border-white/10 rounded-[18px] p-5 text-center">
             <div className="w-9 h-9 mx-auto mb-3">
-              <svg viewBox="0 0 36 36" fill="none">
-                <circle cx="18" cy="18" r="15" stroke="#dc143c" strokeWidth="3" />
-                <circle cx="12" cy="27" r="6" stroke="#dc143c" strokeWidth="3" />
-                <line x1="18" y1="27" x2="18" y2="33" stroke="#dc143c" strokeWidth="3" />
-                <circle cx="24" cy="27" r="6" stroke="#dc143c" strokeWidth="3" />
-              </svg>
+              <Leaf className="w-9 h-9 text-crimson" strokeWidth={2} />
             </div>
             <p className="text-lg text-[#d1d5dc] leading-6">Eco-Friendly</p>
           </div>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { IconButton } from '@/components/ui/IconButton';
 import { apiClient } from '@/lib/api';
+import { ChevronLeft, MapPin, Navigation, Calendar, User, Clock, Car } from 'lucide-react';
 
 interface Ride {
   rideId: number;
@@ -36,10 +37,24 @@ export default function FindRidePage() {
   const fetchAvailableRides = async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/rides/available');
-      setRides(response.data);
+      // Use search endpoint with optional parameters
+      const params = new URLSearchParams();
+      if (searchParams.pickup) {
+        params.append('pickupLocation', searchParams.pickup);
+      }
+      if (searchParams.dropoff) {
+        params.append('dropoffLocation', searchParams.dropoff);
+      }
+      
+      const endpoint = params.toString() 
+        ? `/rides/search?${params.toString()}`
+        : '/rides/search';
+      
+      const response = await apiClient.get(endpoint);
+      setRides(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Failed to fetch rides:', error);
+      setRides([]);
     } finally {
       setLoading(false);
     }
@@ -51,11 +66,7 @@ export default function FindRidePage() {
       <div className="bg-[#101828] border-b-2 border-white/10 p-6">
         <div className="max-w-md mx-auto flex items-center gap-4">
           <IconButton
-            icon={
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="#d1d5dc" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            }
+            icon={<ChevronLeft className="w-6 h-6 text-slate-300" />}
             onClick={() => router.back()}
           />
           <h1 className="text-xl font-medium text-white">Find a Ride</h1>
@@ -70,23 +81,14 @@ export default function FindRidePage() {
               placeholder="Pickup Location"
               value={searchParams.pickup}
               onChange={(e) => setSearchParams({ ...searchParams, pickup: e.target.value })}
-              icon={
-                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                  <circle cx="10" cy="10" r="3" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M10 1v3M10 16v3M1 10h3M16 10h3" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
-              }
+              icon={<MapPin className="w-5 h-5" />}
             />
 
             <Input
               placeholder="Dropoff Location"
               value={searchParams.dropoff}
               onChange={(e) => setSearchParams({ ...searchParams, dropoff: e.target.value })}
-              icon={
-                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                  <path d="M10 2v16M10 18l-4-4M10 18l4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              }
+              icon={<Navigation className="w-5 h-5" />}
             />
 
             <Input
@@ -94,12 +96,7 @@ export default function FindRidePage() {
               placeholder="Date"
               value={searchParams.date}
               onChange={(e) => setSearchParams({ ...searchParams, date: e.target.value })}
-              icon={
-                <svg className="w-5 h-5" viewBox="0 0 20 20" fill="none">
-                  <rect x="3" y="4" width="14" height="14" rx="2" stroke="currentColor" strokeWidth="1.5" />
-                  <path d="M3 8h14M7 2v4M13 2v4" stroke="currentColor" strokeWidth="1.5" />
-                </svg>
-              }
+              icon={<Calendar className="w-5 h-5" />}
             />
 
             <Button
@@ -129,11 +126,7 @@ export default function FindRidePage() {
           ) : rides.length === 0 ? (
             <Card variant="glass">
               <div className="text-center py-8">
-                <svg className="w-16 h-16 mx-auto mb-4 text-[#6a7282]" viewBox="0 0 64 64" fill="none">
-                  <circle cx="32" cy="32" r="24" stroke="currentColor" strokeWidth="2" />
-                  <circle cx="16" cy="48" r="6" stroke="currentColor" strokeWidth="2" />
-                  <circle cx="48" cy="48" r="6" stroke="currentColor" strokeWidth="2" />
-                </svg>
+                <Car className="w-16 h-16 mx-auto mb-4 text-[#6a7282]" />
                 <p className="text-[#99a1af]">No rides available</p>
                 <p className="text-sm text-[#6a7282] mt-2">Try adjusting your search</p>
               </div>
@@ -150,10 +143,7 @@ export default function FindRidePage() {
                   <div className="flex items-start gap-4">
                     {/* Driver Avatar */}
                     <div className="w-12 h-12 bg-gradient-to-b from-[#dc143c] to-[#8b0000] rounded-full flex items-center justify-center flex-shrink-0">
-                      <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                        <circle cx="12" cy="8" r="4" stroke="white" strokeWidth="2" />
-                        <path d="M4 20a8 8 0 0116 0" stroke="white" strokeWidth="2" />
-                      </svg>
+                      <User className="w-6 h-6 text-white" />
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -172,10 +162,7 @@ export default function FindRidePage() {
                       {/* Details */}
                       <div className="flex items-center gap-4 text-sm text-[#99a1af]">
                         <span className="flex items-center gap-1">
-                          <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
-                            <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
-                            <path d="M8 5v3l2 2" stroke="currentColor" strokeWidth="1.5" />
-                          </svg>
+                          <Clock className="w-4 h-4" />
                           {new Date(ride.pickupTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         <span>{ride.availableSeats} seats</span>

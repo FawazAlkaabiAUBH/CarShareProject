@@ -4,6 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { IconButton } from '@/components/ui/IconButton';
+import { ChevronLeft, Bell } from 'lucide-react';
 
 const notifications = [
   {
@@ -53,11 +54,7 @@ export default function NotificationsPage() {
       <div className="bg-[#101828] border-b-2 border-white/10 p-6">
         <div className="max-w-md mx-auto flex items-center justify-between">
           <IconButton
-            icon={
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none">
-                <path d="M15 18l-6-6 6-6" stroke="#d1d5dc" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            }
+            icon={<ChevronLeft className="w-6 h-6 text-slate-300" />}
             onClick={() => router.back()}
           />
           <h1 className="text-xl font-medium text-white">Notifications</h1>
@@ -71,9 +68,7 @@ export default function NotificationsPage() {
         {notifications.length === 0 ? (
           <Card variant="glass">
             <div className="text-center py-12">
-              <svg className="w-16 h-16 mx-auto mb-4 text-[#6a7282]" viewBox="0 0 64 64" fill="none">
-                <path d="M32 8a16 16 0 0116 16c0 14-6 18-6 18H22s-6-4-6-18a16 16 0 0116-16zM24 42h16M28 46h8" stroke="currentColor" strokeWidth="2" />
-              </svg>
+              <Bell className="w-16 h-16 mx-auto mb-4 text-[#6a7282]" />
               <p className="text-[#99a1af]">No notifications yet</p>
               <p className="text-sm text-[#6a7282] mt-2">We'll notify you when something happens</p>
             </div>
