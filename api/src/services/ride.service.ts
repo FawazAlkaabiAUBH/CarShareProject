@@ -21,7 +21,8 @@ export class RideService {
     const ride = this.rideRepository.save({
       ...createRideDto,
       pickupTime: new Date(createRideDto.pickupTime),
-      fareEstimate: createRideDto.fareEstimate || this.estimateFare(createRideDto),
+      fareEstimate:
+        createRideDto.fareEstimate || this.estimateFare(createRideDto),
     });
 
     // Increment driver's total rides
@@ -51,7 +52,7 @@ export class RideService {
     this.rideRepository.updateStatus(rideId, 'CANCELLED');
   }
 
-  updateStatus(rideId: number, status: string): void {
+  updateStatus(rideId: number, status: Ride['rideStatus']): void {
     this.rideRepository.updateStatus(rideId, status);
   }
 

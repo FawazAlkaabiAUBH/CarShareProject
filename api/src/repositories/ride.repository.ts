@@ -45,9 +45,7 @@ export class RideRepository {
   }
 
   findByRider(riderId: number): Ride[] {
-    return Array.from(this.rides.values()).filter(
-      (r) => r.riderId === riderId,
-    );
+    return Array.from(this.rides.values()).filter((r) => r.riderId === riderId);
   }
 
   findAvailable(pickupLocation?: string, at?: Date): Ride[] {
@@ -85,10 +83,10 @@ export class RideRepository {
     this.rides.delete(rideId);
   }
 
-  updateStatus(rideId: number, status: string): void {
+  updateStatus(rideId: number, status: Ride['rideStatus']): void {
     const ride = this.rides.get(rideId);
     if (ride) {
-      ride.rideStatus = status as any;
+      ride.rideStatus = status;
       ride.updatedAt = new Date();
     }
   }

@@ -103,10 +103,10 @@ export class UserRepository {
     }
   }
 
-  updateStatus(userId: number, status: string): void {
+  updateStatus(userId: number, status: User['accountStatus']): void {
     const user = this.users.get(userId);
     if (user) {
-      user.accountStatus = status as any;
+      user.accountStatus = status;
       user.updatedAt = new Date();
     }
   }

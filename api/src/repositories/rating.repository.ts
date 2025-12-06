@@ -23,9 +23,7 @@ export class RatingRepository {
   }
 
   findByRide(rideId: number): Rating[] {
-    return Array.from(this.ratings.values()).filter(
-      (r) => r.rideId === rideId,
-    );
+    return Array.from(this.ratings.values()).filter((r) => r.rideId === rideId);
   }
 
   save(rating: Partial<Rating>): Rating {
@@ -54,7 +52,11 @@ export class RatingRepository {
     }
   }
 
-  updateScoreAndComment(ratingId: number, score: number, comment: string): void {
+  updateScoreAndComment(
+    ratingId: number,
+    score: number,
+    comment: string,
+  ): void {
     const rating = this.ratings.get(ratingId);
     if (rating) {
       rating.score = score;

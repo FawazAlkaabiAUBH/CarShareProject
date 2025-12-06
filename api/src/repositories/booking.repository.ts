@@ -48,10 +48,10 @@ export class BookingRepository {
     this.bookings.delete(bookingId);
   }
 
-  updateStatus(bookingId: number, status: string): void {
+  updateStatus(bookingId: number, status: Booking['bookingStatus']): void {
     const booking = this.bookings.get(bookingId);
     if (booking) {
-      booking.bookingStatus = status as any;
+      booking.bookingStatus = status;
       booking.updatedAt = new Date();
 
       if (status === 'CONFIRMED' && !booking.assignedTime) {

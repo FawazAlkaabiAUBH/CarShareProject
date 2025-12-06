@@ -13,5 +13,10 @@ export class UpdateRideDto {
   pickupTime?: string;
   availableSeats?: number;
   fareEstimate?: number;
-  rideStatus?: 'AVAILABLE' | 'BOOKED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  rideStatus?:
+    | 'AVAILABLE'
+    | 'BOOKED'
+    | 'IN_PROGRESS'
+    | 'COMPLETED'
+    | 'CANCELLED';
 }

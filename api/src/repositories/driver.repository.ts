@@ -78,10 +78,10 @@ export class DriverRepository {
     this.drivers.delete(driverId);
   }
 
-  updateAvailability(driverId: number, status: string): void {
+  updateAvailability(driverId: number, status: Driver['availabilityStatus']): void {
     const driver = this.drivers.get(driverId);
     if (driver) {
-      driver.availabilityStatus = status as any;
+      driver.availabilityStatus = status;
     }
   }
 
