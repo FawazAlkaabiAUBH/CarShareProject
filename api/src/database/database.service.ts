@@ -142,7 +142,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
   private seedData() {
     // Check if data already exists
-    const userCount = this.db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
+    const userCount = this.db
+      .prepare('SELECT COUNT(*) as count FROM users')
+      .get() as { count: number };
     if (userCount.count > 0) {
       return; // Data already seeded
     }
@@ -157,9 +159,39 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertUser.run('Ahmed Ali', 'ahmed@aubh.edu.bh', hashedPassword, '+973-12345678', 'DRIVER', 'ACTIVE', now, now, now);
-    insertUser.run('Fatima Hassan', 'fatima@aubh.edu.bh', hashedPassword, '+973-23456789', 'RIDER', 'ACTIVE', now, now, now);
-    insertUser.run('Mohammed Khalid', 'mohammed@aubh.edu.bh', hashedPassword, '+973-34567890', 'DRIVER', 'ACTIVE', now, now, now);
+    insertUser.run(
+      'Ahmed Ali',
+      'ahmed@aubh.edu.bh',
+      hashedPassword,
+      '+973-12345678',
+      'DRIVER',
+      'ACTIVE',
+      now,
+      now,
+      now,
+    );
+    insertUser.run(
+      'Fatima Hassan',
+      'fatima@aubh.edu.bh',
+      hashedPassword,
+      '+973-23456789',
+      'RIDER',
+      'ACTIVE',
+      now,
+      now,
+      now,
+    );
+    insertUser.run(
+      'Mohammed Khalid',
+      'mohammed@aubh.edu.bh',
+      hashedPassword,
+      '+973-34567890',
+      'DRIVER',
+      'ACTIVE',
+      now,
+      now,
+      now,
+    );
 
     // Seed drivers
     const insertDriver = this.db.prepare(`
@@ -167,8 +199,26 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertDriver.run(1, 'Toyota Camry 2020 - White', 'DL12345', 4.5, 0, 1, now, now);
-    insertDriver.run(3, 'Honda Accord 2019 - Black', 'DL67890', 4.8, 0, 1, now, now);
+    insertDriver.run(
+      1,
+      'Toyota Camry 2020 - White',
+      'DL12345',
+      4.5,
+      0,
+      1,
+      now,
+      now,
+    );
+    insertDriver.run(
+      3,
+      'Honda Accord 2019 - Black',
+      'DL67890',
+      4.8,
+      0,
+      1,
+      now,
+      now,
+    );
 
     // Seed rider
     const insertRider = this.db.prepare(`
@@ -188,6 +238,18 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertRide.run(1, null, 'Seef District', 'AUBH Campus', tomorrow.toISOString(), null, 'AVAILABLE', 2.5, 3, now, now);
+    insertRide.run(
+      1,
+      null,
+      'Seef District',
+      'AUBH Campus',
+      tomorrow.toISOString(),
+      null,
+      'AVAILABLE',
+      2.5,
+      3,
+      now,
+      now,
+    );
   }
 }
