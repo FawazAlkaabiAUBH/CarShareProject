@@ -157,9 +157,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertUser.run('Ahmed Ali', 'ahmed@student.aubh.edu.bh', hashedPassword, '+973-12345678', 'DRIVER', 'ACTIVE', now, now, now);
-    insertUser.run('Fatima Hassan', 'fatima@student.aubh.edu.bh', hashedPassword, '+973-23456789', 'RIDER', 'ACTIVE', now, now, now);
-    insertUser.run('Mohammed Khalid', 'mohammed@student.aubh.edu.bh', hashedPassword, '+973-34567890', 'DRIVER', 'ACTIVE', now, now, now);
+    insertUser.run('Ahmed Ali', 'ahmed@aubh.edu.bh', hashedPassword, '+973-12345678', 'DRIVER', 'ACTIVE', now, now, now);
+    insertUser.run('Fatima Hassan', 'fatima@aubh.edu.bh', hashedPassword, '+973-23456789', 'RIDER', 'ACTIVE', now, now, now);
+    insertUser.run('Mohammed Khalid', 'mohammed@aubh.edu.bh', hashedPassword, '+973-34567890', 'DRIVER', 'ACTIVE', now, now, now);
 
     // Seed drivers
     const insertDriver = this.db.prepare(`
