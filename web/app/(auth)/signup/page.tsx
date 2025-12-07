@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -17,13 +17,27 @@ export default function SignupPage() {
     phoneNumber: '',
     password: '',
     confirmPassword: '',
-    role: 'RIDER' as 'DRIVER' | 'RIDER',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      router.push('/dashboard');
+    }
+  }, [router]);
+
   const handleNext = () => {
-    if (step === 1 && formData.email && formData.name) {
+    if (step === 1 && formData.email && formData.name && formData.phoneNumber) {
+      // Validate phone number
+      const phoneRegex = /^\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
+      if (!phoneRegex.test(formData.phoneNumber)) {
+        setError('Please enter a valid phone number (e.g., +973-1234-5678 or 17001234)');
+        return;
+      }
+      setError('');
       setStep(2);
     } else if (step === 2 && formData.password === formData.confirmPassword) {
       handleSignup();
@@ -40,17 +54,17 @@ export default function SignupPage() {
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         password: formData.password,
-        role: formData.role,
       });
 
       if (response.data) {
         // Store JWT token and user data
         localStorage.setItem('access_token', response.data.access_token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
-        router.push('/verification');
+        router.push('/dashboard');
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Signup failed. Please try again.');
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Signup failed. Please try again.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -116,44 +130,12 @@ export default function SignupPage() {
               <Input
                 type="tel"
                 label="Phone Number"
-                placeholder="+973 XXXX XXXX"
+                placeholder="+973 XXXX XXXX or 17001234"
                 value={formData.phoneNumber}
                 onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                required
                 icon={<Phone className="w-5 h-5" />}
               />
-
-              <div>
-                <label className="block text-sm font-medium text-[#d1d5dc] mb-3">
-                  I want to
-                </label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, role: 'RIDER' })}
-                    className={`p-4 rounded-[18px] border-2 transition-all ${
-                      formData.role === 'RIDER'
-                        ? 'bg-[#dc143c]/20 border-[#dc143c]'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    <p className="text-white font-medium">Find Rides</p>
-                    <p className="text-sm text-[#99a1af] mt-1">As a Rider</p>
-                  </button>
-                  
-                  <button
-                    type="button"
-                    onClick={() => setFormData({ ...formData, role: 'DRIVER' })}
-                    className={`p-4 rounded-[18px] border-2 transition-all ${
-                      formData.role === 'DRIVER'
-                        ? 'bg-[#dc143c]/20 border-[#dc143c]'
-                        : 'bg-white/5 border-white/10 hover:bg-white/10'
-                    }`}
-                  >
-                    <p className="text-white font-medium">Offer Rides</p>
-                    <p className="text-sm text-[#99a1af] mt-1">As a Driver</p>
-                  </button>
-                </div>
-              </div>
             </div>
           )}
 
@@ -177,17 +159,6 @@ export default function SignupPage() {
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                 required
                 icon={<Lock className="w-5 h-5" />}
-              />
-
-              <Input
-                type="password"
-                label="Confirm Password"
-                placeholder="Re-enter your password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                required
-                icon={<Lock className="w-5 h-5" />}
-            
                 error={formData.confirmPassword && formData.password !== formData.confirmPassword ? 'Passwords do not match' : ''}
               />
 

@@ -2,12 +2,16 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UserRepository } from '../repositories/user.repository';
+import { RiderRepository } from '../repositories/rider.repository';
+import { DriverRepository } from '../repositories/driver.repository';
 import { CreateUserDto } from '../dto/user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly riderRepository: RiderRepository,
+    private readonly driverRepository: DriverRepository,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -21,11 +25,22 @@ export class AuthService {
     // Hash password
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
 
-    // Create user
+    // Create user with USER role (no driver option during signup)
     const user = this.userRepository.save({
-      ...createUserDto,
+      name: createUserDto.name,
+      email: createUserDto.email,
       password: hashedPassword,
+      phoneNumber: createUserDto.phoneNumber,
+      role: createUserDto.role || 'USER',
       accountStatus: 'ACTIVE',
+    });
+
+    // Automatically create rider profile (everyone needs this to book rides)
+    this.riderRepository.save({
+      userId: user.userId,
+      preferredPickupLocation: '',
+      rating: 5.0,
+      totalRides: 0,
     });
 
     // Generate JWT token

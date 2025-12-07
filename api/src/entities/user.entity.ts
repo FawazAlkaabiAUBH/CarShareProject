@@ -4,7 +4,7 @@ export class User {
   email: string;
   password: string; // Hashed password
   phoneNumber: string;
-  role: 'RIDER' | 'DRIVER'; // Simplified - user can be both
+  role: 'USER' | 'ADMIN'; // Permission level
   accountStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   createdAt: Date;
   updatedAt: Date;

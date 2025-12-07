@@ -24,11 +24,11 @@ export class BookingRepository {
     return rows.map((row) => this.mapToEntity(row));
   }
 
-  findByRider(riderId: number): Booking[] {
+  findByUser(userId: number): Booking[] {
     const rows = this.db
       .getDatabase()
-      .prepare('SELECT * FROM bookings WHERE riderId = ?')
-      .all(riderId) as any[];
+      .prepare('SELECT * FROM bookings WHERE userId = ?')
+      .all(userId) as any[];
 
     return rows.map((row) => this.mapToEntity(row));
   }
@@ -48,13 +48,13 @@ export class BookingRepository {
     if (!booking.bookingId) {
       // Insert new booking
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO bookings (rideId, riderId, seatsBooked, totalFare, bookingStatus, createdAt, updatedAt)
+        INSERT INTO bookings (rideId, userId, seatsBooked, totalFare, bookingStatus, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
         booking.rideId,
-        booking.riderId,
+        booking.userId,
         booking.seatsBooked!,
         booking.totalFare!,
         booking.bookingStatus || 'PENDING',
@@ -67,13 +67,13 @@ export class BookingRepository {
       // Update existing booking
       const stmt = this.db.getDatabase().prepare(`
         UPDATE bookings
-        SET rideId = ?, riderId = ?, seatsBooked = ?, totalFare = ?, bookingStatus = ?, updatedAt = ?
+        SET rideId = ?, userId = ?, seatsBooked = ?, totalFare = ?, bookingStatus = ?, updatedAt = ?
         WHERE bookingId = ?
       `);
 
       stmt.run(
         booking.rideId,
-        booking.riderId,
+        booking.userId,
         booking.seatsBooked!,
         booking.totalFare!,
         booking.bookingStatus,
@@ -127,10 +127,13 @@ export class BookingRepository {
     return new Booking({
       bookingId: row.bookingId,
       rideId: row.rideId,
-      riderId: row.riderId,
+      userId: row.userId,
       seatsBooked: row.seatsBooked,
       totalFare: row.totalFare,
       bookingStatus: row.bookingStatus,
+      cancellationReason: row.cancellationReason,
+      cancelledBy: row.cancelledBy,
+      completedAt: row.completedAt ? new Date(row.completedAt) : undefined,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt),
     });

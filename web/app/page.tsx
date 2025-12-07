@@ -1,12 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
 import { Car, ShieldCheck, Users, Leaf } from 'lucide-react';
 
 export default function WelcomePage() {
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      router.push('/dashboard');
+    }
+  }, [router]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0a0e1a] via-[#1a1d29] to-[#2a1a1a] flex items-center justify-center p-6">

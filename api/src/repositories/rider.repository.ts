@@ -6,15 +6,6 @@ import { DatabaseService } from '../database/database.service';
 export class RiderRepository {
   constructor(private readonly db: DatabaseService) {}
 
-  findById(riderId: number): Rider | undefined {
-    const row = this.db
-      .getDatabase()
-      .prepare('SELECT * FROM riders WHERE riderId = ?')
-      .get(riderId) as any;
-
-    return row ? this.mapToEntity(row) : undefined;
-  }
-
   findByUserId(userId: number): Rider | undefined {
     const row = this.db
       .getDatabase()
@@ -36,14 +27,16 @@ export class RiderRepository {
   save(rider: Partial<Rider>): Rider {
     const now = new Date().toISOString();
 
-    if (!rider.riderId) {
+    const existing = rider.userId ? this.findByUserId(rider.userId) : undefined;
+
+    if (!existing) {
       // Insert new rider
       const stmt = this.db.getDatabase().prepare(`
         INSERT INTO riders (userId, preferredPickupLocation, rating, totalRides, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?)
       `);
 
-      const info = stmt.run(
+      stmt.run(
         rider.userId,
         rider.preferredPickupLocation ?? null,
         rider.rating ?? 0,
@@ -52,81 +45,70 @@ export class RiderRepository {
         now,
       );
 
-      return this.findById(info.lastInsertRowid as number)!;
+      return this.findByUserId(rider.userId!)!;
     } else {
       // Update existing rider
       const stmt = this.db.getDatabase().prepare(`
         UPDATE riders
-        SET userId = ?, preferredPickupLocation = ?, rating = ?, totalRides = ?, updatedAt = ?
-        WHERE riderId = ?
+        SET preferredPickupLocation = ?, rating = ?, totalRides = ?, updatedAt = ?
+        WHERE userId = ?
       `);
 
       stmt.run(
-        rider.userId,
-        rider.preferredPickupLocation ?? null,
-        rider.rating!,
-        rider.totalRides!,
+        rider.preferredPickupLocation ?? existing.preferredPickupLocation,
+        rider.rating ?? existing.rating,
+        rider.totalRides ?? existing.totalRides,
         now,
-        rider.riderId,
+        rider.userId,
       );
 
-      return this.findById(rider.riderId)!;
+      return this.findByUserId(rider.userId!)!;
     }
   }
 
-  delete(riderId: number): void {
+  delete(userId: number): void {
     this.db
       .getDatabase()
-      .prepare('DELETE FROM riders WHERE riderId = ?')
-      .run(riderId);
+      .prepare('DELETE FROM riders WHERE userId = ?')
+      .run(userId);
   }
 
-  updateRating(riderId: number, rating: number): void {
+  updateRating(userId: number, rating: number): void {
     this.db
       .getDatabase()
-      .prepare('UPDATE riders SET rating = ?, updatedAt = ? WHERE riderId = ?')
-      .run(rating, new Date().toISOString(), riderId);
+      .prepare('UPDATE riders SET rating = ?, updatedAt = ? WHERE userId = ?')
+      .run(rating, new Date().toISOString(), userId);
   }
 
-  incrementTotalRides(riderId: number): void {
+  incrementTotalRides(userId: number): void {
     this.db
       .getDatabase()
       .prepare(
-        'UPDATE riders SET totalRides = totalRides + 1, updatedAt = ? WHERE riderId = ?',
+        'UPDATE riders SET totalRides = totalRides + 1, updatedAt = ? WHERE userId = ?',
       )
-      .run(new Date().toISOString(), riderId);
+      .run(new Date().toISOString(), userId);
   }
 
-  updatePaymentMethod(riderId: number, method: string): void {
+  updatePaymentMethod(userId: number, method: string): void {
     this.db
       .getDatabase()
       .prepare(
-        'UPDATE riders SET paymentMethod = ?, updatedAt = ? WHERE riderId = ?',
+        'UPDATE riders SET updatedAt = ? WHERE userId = ?',
       )
-      .run(method, new Date().toISOString(), riderId);
+      .run(new Date().toISOString(), userId);
   }
 
-  updatePickupLocation(riderId: number, location: string): void {
+  updatePickupLocation(userId: number, location: string): void {
     this.db
       .getDatabase()
       .prepare(
-        'UPDATE riders SET preferredPickupLocation = ?, updatedAt = ? WHERE riderId = ?',
+        'UPDATE riders SET preferredPickupLocation = ?, updatedAt = ? WHERE userId = ?',
       )
-      .run(location, new Date().toISOString(), riderId);
-  }
-
-  incrementLoyaltyPoints(riderId: number, points: number): void {
-    this.db
-      .getDatabase()
-      .prepare(
-        'UPDATE riders SET loyaltyPoints = loyaltyPoints + ?, updatedAt = ? WHERE riderId = ?',
-      )
-      .run(points, new Date().toISOString(), riderId);
+      .run(location, new Date().toISOString(), userId);
   }
 
   private mapToEntity(row: any): Rider {
     return new Rider({
-      riderId: row.riderId,
       userId: row.userId,
       preferredPickupLocation: row.preferredPickupLocation,
       rating: row.rating,

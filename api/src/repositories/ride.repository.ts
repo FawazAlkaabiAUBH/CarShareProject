@@ -15,25 +15,16 @@ export class RideRepository {
     return row ? this.mapToEntity(row) : undefined;
   }
 
-  findByDriver(driverId: number): Ride[] {
+  findByDriver(userId: number): Ride[] {
     const rows = this.db
       .getDatabase()
-      .prepare('SELECT * FROM rides WHERE driverId = ?')
-      .all(driverId) as any[];
+      .prepare('SELECT * FROM rides WHERE userId = ?')
+      .all(userId) as any[];
 
     return rows.map((row) => this.mapToEntity(row));
   }
 
-  findByRider(riderId: number): Ride[] {
-    const rows = this.db
-      .getDatabase()
-      .prepare('SELECT * FROM rides WHERE riderId = ?')
-      .all(riderId) as any[];
-
-    return rows.map((row) => this.mapToEntity(row));
-  }
-
-  findAvailable(pickupLocation?: string, at?: Date): Ride[] {
+  findAvailable(pickupLocation?: string, dropoffLocation?: string, at?: Date, startDate?: Date, endDate?: Date): Ride[] {
     let query = `SELECT * FROM rides WHERE rideStatus = 'AVAILABLE' AND availableSeats > 0`;
     const params: any[] = [];
 
@@ -42,9 +33,25 @@ export class RideRepository {
       params.push(`%${pickupLocation}%`);
     }
 
+    if (dropoffLocation) {
+      query += ` AND dropoffLocation LIKE ? COLLATE NOCASE`;
+      params.push(`%${dropoffLocation}%`);
+    }
+
     if (at) {
       query += ` AND pickupTime >= ?`;
       params.push(at.toISOString());
+    }
+
+    if (startDate && endDate) {
+      query += ` AND DATE(pickupTime) BETWEEN DATE(?) AND DATE(?)`;
+      params.push(startDate.toISOString(), endDate.toISOString());
+    } else if (startDate) {
+      query += ` AND DATE(pickupTime) >= DATE(?)`;
+      params.push(startDate.toISOString());
+    } else if (endDate) {
+      query += ` AND DATE(pickupTime) <= DATE(?)`;
+      params.push(endDate.toISOString());
     }
 
     const rows = this.db.getDatabase().prepare(query).all(...params) as any[];
@@ -58,13 +65,13 @@ export class RideRepository {
     if (!ride.rideId) {
       // Insert new ride
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO rides (driverId, riderId, pickupLocation, dropoffLocation, pickupTime, dropoffTime, rideStatus, fareEstimate, availableSeats, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO rides (userId, vehicleId, pickupLocation, dropoffLocation, pickupTime, dropoffTime, rideStatus, farePerSeat, totalSeats, availableSeats, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
-        ride.driverId,
-        ride.riderId || null,
+        ride.userId,
+        ride.vehicleId,
         ride.pickupLocation,
         ride.dropoffLocation,
         ride.pickupTime instanceof Date
@@ -76,8 +83,9 @@ export class RideRepository {
             : ride.dropoffTime
           : null,
         ride.rideStatus || 'AVAILABLE',
-        ride.fareEstimate,
-        ride.availableSeats,
+        ride.farePerSeat,
+        ride.totalSeats,
+        ride.availableSeats ?? ride.totalSeats,
         now,
         now,
       );
@@ -87,13 +95,13 @@ export class RideRepository {
       // Update existing ride
       const stmt = this.db.getDatabase().prepare(`
         UPDATE rides
-        SET driverId = ?, riderId = ?, pickupLocation = ?, dropoffLocation = ?, pickupTime = ?, dropoffTime = ?, rideStatus = ?, fareEstimate = ?, availableSeats = ?, updatedAt = ?
+        SET userId = ?, vehicleId = ?, pickupLocation = ?, dropoffLocation = ?, pickupTime = ?, dropoffTime = ?, rideStatus = ?, farePerSeat = ?, totalSeats = ?, availableSeats = ?, updatedAt = ?
         WHERE rideId = ?
       `);
 
       stmt.run(
-        ride.driverId,
-        ride.riderId || null,
+        ride.userId,
+        ride.vehicleId,
         ride.pickupLocation,
         ride.dropoffLocation,
         ride.pickupTime instanceof Date
@@ -105,7 +113,8 @@ export class RideRepository {
             : ride.dropoffTime
           : null,
         ride.rideStatus,
-        ride.fareEstimate,
+        ride.farePerSeat,
+        ride.totalSeats,
         ride.availableSeats,
         now,
         ride.rideId,
@@ -140,49 +149,50 @@ export class RideRepository {
       .run(pickup, dropoff, new Date().toISOString(), rideId);
   }
 
-  updateFareEstimate(rideId: number, estimate: number): void {
+  updateFarePerSeat(rideId: number, farePerSeat: number): void {
     this.db
       .getDatabase()
       .prepare(
-        'UPDATE rides SET fareEstimate = ?, updatedAt = ? WHERE rideId = ?',
+        'UPDATE rides SET farePerSeat = ?, updatedAt = ? WHERE rideId = ?',
       )
-      .run(estimate, new Date().toISOString(), rideId);
+      .run(farePerSeat, new Date().toISOString(), rideId);
   }
 
-  decrementSeats(rideId: number): boolean {
+  decrementSeats(rideId: number, count: number = 1): boolean {
     const ride = this.findById(rideId);
-    if (ride && ride.availableSeats > 0) {
+    if (ride && ride.availableSeats >= count) {
       this.db
         .getDatabase()
         .prepare(
-          'UPDATE rides SET availableSeats = availableSeats - 1, updatedAt = ? WHERE rideId = ?',
+          'UPDATE rides SET availableSeats = availableSeats - ?, updatedAt = ? WHERE rideId = ?',
         )
-        .run(new Date().toISOString(), rideId);
+        .run(count, new Date().toISOString(), rideId);
       return true;
     }
     return false;
   }
 
-  incrementSeats(rideId: number): void {
+  incrementSeats(rideId: number, count: number = 1): void {
     this.db
       .getDatabase()
       .prepare(
-        'UPDATE rides SET availableSeats = availableSeats + 1, updatedAt = ? WHERE rideId = ?',
+        'UPDATE rides SET availableSeats = availableSeats + ?, updatedAt = ? WHERE rideId = ?',
       )
-      .run(new Date().toISOString(), rideId);
+      .run(count, new Date().toISOString(), rideId);
   }
 
   private mapToEntity(row: any): Ride {
     return new Ride({
       rideId: row.rideId,
-      driverId: row.driverId,
-      riderId: row.riderId,
+      userId: row.userId,
+      vehicleId: row.vehicleId,
       pickupLocation: row.pickupLocation,
       dropoffLocation: row.dropoffLocation,
       pickupTime: new Date(row.pickupTime),
       dropoffTime: row.dropoffTime ? new Date(row.dropoffTime) : undefined,
       rideStatus: row.rideStatus,
-      fareEstimate: row.fareEstimate,
+      farePerSeat: row.farePerSeat,
+      totalSeats: row.totalSeats,
       availableSeats: row.availableSeats,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt),

@@ -1,18 +1,19 @@
 export class CreateRideDto {
-  driverId: number;
+  vehicleId: number;
   pickupLocation: string;
   dropoffLocation: string;
   pickupTime: string; // ISO date string
-  availableSeats: number;
-  fareEstimate?: number;
+  totalSeats: number;
+  farePerSeat: number;
 }
 
 export class UpdateRideDto {
+  vehicleId?: number;
   pickupLocation?: string;
   dropoffLocation?: string;
   pickupTime?: string;
-  availableSeats?: number;
-  fareEstimate?: number;
+  totalSeats?: number;
+  farePerSeat?: number;
   rideStatus?:
     | 'AVAILABLE'
     | 'BOOKED'

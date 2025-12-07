@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { DriverRepository } from '../repositories/driver.repository';
-import { RegisterDriverDto, UpdateDriverDto } from '../dto/driver.dto';
+import { RegisterDriverDto, UpdateDriverDto, VerifyDriverDto } from '../dto/driver.dto';
 import { Driver } from '../entities/driver.entity';
 
 @Injectable()
@@ -8,50 +8,57 @@ export class DriverService {
   constructor(private readonly driverRepository: DriverRepository) {}
 
   registerDriver(registerDriverDto: RegisterDriverDto): Driver {
-    return this.driverRepository.save(registerDriverDto);
+    return this.driverRepository.save({
+      userId: registerDriverDto.userId,
+      licenseNumber: registerDriverDto.licenseNumber,
+      licenseDocument: registerDriverDto.licenseDocument,
+      rating: 5.0,
+      totalRides: 0,
+    });
   }
 
-  getDriverByUserId(userId: number): Driver {
+  getDriverByUserId(userId: number): Driver | undefined {
+    return this.driverRepository.findByUserId(userId);
+  }
+
+  updateDriver(userId: number, updateDriverDto: UpdateDriverDto): Driver {
     const driver = this.driverRepository.findByUserId(userId);
     if (!driver) {
-      throw new Error(`Driver for user ID ${userId} not found`);
-    }
-    return driver;
-  }
-
-  updateVehicle(driverId: number, vehicleInfo: string): void {
-    this.driverRepository.updateVehicle(driverId, vehicleInfo);
-  }
-
-  updateDriverLicense(driverId: number, licenseNumber: string): void {
-    this.driverRepository.updateLicense(driverId, licenseNumber);
-  }
-
-  updateDriver(driverId: number, updateDriverDto: UpdateDriverDto): Driver {
-    const driver = this.driverRepository.findById(driverId);
-    if (!driver) {
-      throw new Error(`Driver with ID ${driverId} not found`);
+      throw new NotFoundException(`Driver for user ID ${userId} not found`);
     }
     return this.driverRepository.save({ ...driver, ...updateDriverDto });
-  }
-
-  getDriverById(driverId: number): Driver {
-    const driver = this.driverRepository.findById(driverId);
-    if (!driver) {
-      throw new Error(`Driver with ID ${driverId} not found`);
-    }
-    return driver;
   }
 
   getAllDrivers(): Driver[] {
     return this.driverRepository.findAll();
   }
 
-  getAvailableDrivers(): Driver[] {
-    return this.driverRepository.findAvailable();
+  getVerifiedDrivers(): Driver[] {
+    return this.driverRepository.findVerified();
   }
 
-  updateRating(driverId: number, rating: number): void {
-    this.driverRepository.updateRating(driverId, rating);
+  getPendingDrivers(): Driver[] {
+    return this.driverRepository.findPending();
+  }
+
+  verifyDriver(verifyDriverDto: VerifyDriverDto): Driver {
+    const driver = this.driverRepository.findByUserId(verifyDriverDto.userId);
+    if (!driver) {
+      throw new NotFoundException(`Driver for user ID ${verifyDriverDto.userId} not found`);
+    }
+    
+    return this.driverRepository.save({
+      ...driver,
+      verifiedAt: new Date(),
+      verifiedBy: verifyDriverDto.verifiedBy,
+    });
+  }
+
+  updateRating(userId: number, rating: number): void {
+    this.driverRepository.updateRating(userId, rating);
+  }
+
+  incrementTotalRides(userId: number): void {
+    this.driverRepository.incrementTotalRides(userId);
   }
 }

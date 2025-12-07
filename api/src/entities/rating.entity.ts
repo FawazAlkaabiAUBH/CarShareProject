@@ -1,8 +1,8 @@
 export class Rating {
   ratingId: number;
   rideId: number;
-  raterId: number;
-  rateeId: number;
+  raterUserId: number;
+  ratedUserId: number;
   score: number; // 1-5
   comment: string;
   isFlagged: boolean;

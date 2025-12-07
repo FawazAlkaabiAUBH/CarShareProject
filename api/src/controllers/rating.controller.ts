@@ -20,20 +20,20 @@ export class RatingController {
     return this.ratingService.submitRating(createRatingDto);
   }
 
-  @Get('driver/:driverId/average')
-  getDriverAverage(@Param('driverId', ParseIntPipe) driverId: number) {
-    const averageRating = this.ratingService.computeDriverAverage(driverId);
+  @Get('user/:userId/average')
+  getUserAverage(@Param('userId', ParseIntPipe) userId: number) {
+    const averageRating = this.ratingService.computeUserAverage(userId);
     return { averageRating };
   }
 
-  @Get('driver/:driverId')
-  getDriverRatings(@Param('driverId', ParseIntPipe) driverId: number) {
-    return this.ratingService.getRatingsByDriver(driverId);
+  @Get('user/:userId/given')
+  getRatingsByUser(@Param('userId', ParseIntPipe) userId: number) {
+    return this.ratingService.getRatingsByUser(userId);
   }
 
-  @Get('rider/:riderId')
-  getRiderRatings(@Param('riderId', ParseIntPipe) riderId: number) {
-    return this.ratingService.getRatingsByRider(riderId);
+  @Get('user/:userId/received')
+  getRatingsForUser(@Param('userId', ParseIntPipe) userId: number) {
+    return this.ratingService.getRatingsForUser(userId);
   }
 
   @Get('ride/:rideId')

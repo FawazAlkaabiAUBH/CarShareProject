@@ -1,14 +1,15 @@
 export class Ride {
   rideId: number;
-  driverId: number;
-  riderId: number | null; // Can be null if not assigned yet
+  userId: number;
+  vehicleId: number;
   pickupLocation: string;
   dropoffLocation: string;
   pickupTime: Date;
   dropoffTime: Date | null;
   rideStatus: 'AVAILABLE' | 'BOOKED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
-  fareEstimate: number;
-  availableSeats: number; // Added for easier seat management
+  farePerSeat: number;
+  availableSeats: number;
+  totalSeats: number;
   createdAt: Date;
   updatedAt: Date;
 

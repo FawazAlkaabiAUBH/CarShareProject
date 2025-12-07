@@ -1,11 +1,12 @@
 export class Driver {
-  driverId: number;
   userId: number;
-  vehicleInfo: string;
   licenseNumber: string;
+  licenseDocument?: string;
+  isVerified: boolean;
+  verifiedAt?: Date;
+  verifiedBy?: number;
   rating: number;
   totalRides: number;
-  isVerified: boolean;
   createdAt: Date;
   updatedAt: Date;
 

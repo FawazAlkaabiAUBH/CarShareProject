@@ -17,6 +17,7 @@ import { BookingController } from './controllers/booking.controller';
 import { RatingController } from './controllers/rating.controller';
 import { DriverController } from './controllers/driver.controller';
 import { RiderController } from './controllers/rider.controller';
+import { VehicleController } from './controllers/vehicle.controller';
 
 // Services
 import { UserService } from './services/user.service';
@@ -25,6 +26,7 @@ import { BookingService } from './services/booking.service';
 import { RatingService } from './services/rating.service';
 import { DriverService } from './services/driver.service';
 import { RiderService } from './services/rider.service';
+import { VehicleService } from './services/vehicle.service';
 
 // Repositories
 import { UserRepository } from './repositories/user.repository';
@@ -33,6 +35,7 @@ import { BookingRepository } from './repositories/booking.repository';
 import { RatingRepository } from './repositories/rating.repository';
 import { DriverRepository } from './repositories/driver.repository';
 import { RiderRepository } from './repositories/rider.repository';
+import { VehicleRepository } from './repositories/vehicle.repository';
 
 @Module({
   imports: [AuthModule],
@@ -44,6 +47,7 @@ import { RiderRepository } from './repositories/rider.repository';
     RatingController,
     DriverController,
     RiderController,
+    VehicleController,
   ],
   providers: [
     AppService,
@@ -61,6 +65,7 @@ import { RiderRepository } from './repositories/rider.repository';
     RatingService,
     DriverService,
     RiderService,
+    VehicleService,
     // Repositories
     UserRepository,
     RideRepository,
@@ -68,6 +73,7 @@ import { RiderRepository } from './repositories/rider.repository';
     RatingRepository,
     DriverRepository,
     RiderRepository,
+    VehicleRepository,
   ],
 })
 export class AppModule {}

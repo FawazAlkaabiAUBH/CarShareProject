@@ -19,9 +19,14 @@ export class DriverController {
     return this.driverService.registerDriver(registerDriverDto);
   }
 
-  @Get('available')
-  getAvailableDrivers() {
-    return this.driverService.getAvailableDrivers();
+  @Get('verified')
+  getVerifiedDrivers() {
+    return this.driverService.getVerifiedDrivers();
+  }
+
+  @Get('pending')
+  getPendingDrivers() {
+    return this.driverService.getPendingDrivers();
   }
 
   @Get('user/:userId')
@@ -29,9 +34,22 @@ export class DriverController {
     return this.driverService.getDriverByUserId(userId);
   }
 
-  @Get(':id')
-  getDriver(@Param('id', ParseIntPipe) id: number) {
-    return this.driverService.getDriverById(id);
+  @Get('user/:userId/status')
+  async getDriverStatus(@Param('userId', ParseIntPipe) userId: number) {
+    try {
+      const driver = await this.driverService.getDriverByUserId(userId);
+      return {
+        isDriver: !!driver,
+        isVerified: driver?.isVerified || false,
+        driver: driver || null,
+      };
+    } catch {
+      return {
+        isDriver: false,
+        isVerified: false,
+        driver: null,
+      };
+    }
   }
 
   @Get()
@@ -39,12 +57,12 @@ export class DriverController {
     return this.driverService.getAllDrivers();
   }
 
-  @Put(':id')
+  @Put('user/:userId')
   updateDriver(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() updateDriverDto: UpdateDriverDto,
   ) {
-    return this.driverService.updateDriver(id, updateDriverDto);
+    return this.driverService.updateDriver(userId, updateDriverDto);
   }
 
   @Put(':id/rating')

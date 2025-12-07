@@ -1,7 +1,6 @@
 export class Rider {
-  riderId: number;
   userId: number;
-  preferredPickupLocation: string;
+  preferredPickupLocation?: string;
   rating: number;
   totalRides: number;
   createdAt: Date;

@@ -37,20 +37,16 @@ export class RatingService {
     return score >= 1 && score <= 5;
   }
 
-  computeDriverAverage(driverId: number): number {
-    return this.ratingRepository.getAverageForDriver(driverId);
+  computeUserAverage(userId: number): number {
+    return this.ratingRepository.getAverageForUser(userId);
   }
 
-  computeRiderAverage(riderId: number): number {
-    return this.ratingRepository.getAverageForRider(riderId);
+  getRatingsByUser(userId: number): Rating[] {
+    return this.ratingRepository.findByUser(userId);
   }
 
-  getRatingsByDriver(driverId: number): Rating[] {
-    return this.ratingRepository.findByDriver(driverId);
-  }
-
-  getRatingsByRider(riderId: number): Rating[] {
-    return this.ratingRepository.findByRider(riderId);
+  getRatingsForUser(userId: number): Rating[] {
+    return this.ratingRepository.findForUser(userId);
   }
 
   getRatingsByRide(rideId: number): Rating[] {

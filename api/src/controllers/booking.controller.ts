@@ -7,17 +7,22 @@ import {
   Param,
   ParseIntPipe,
   HttpCode,
+  Request,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { BookingService } from '../services/booking.service';
 import { CreateBookingDto, UpdateBookingStatusDto } from '../dto/booking.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @Controller('bookings')
+@UseGuards(JwtAuthGuard)
 export class BookingController {
   constructor(private readonly bookingService: BookingService) {}
 
   @Post()
-  createBooking(@Body() createBookingDto: CreateBookingDto) {
-    return this.bookingService.createBooking(createBookingDto);
+  createBooking(@Body() createBookingDto: CreateBookingDto, @Request() req) {
+    return this.bookingService.createBooking(createBookingDto, req.user.userId);
   }
 
   @Get(':id')
@@ -25,9 +30,9 @@ export class BookingController {
     return this.bookingService.getBookingById(id);
   }
 
-  @Get('rider/:riderId')
-  getBookingsByRider(@Param('riderId', ParseIntPipe) riderId: number) {
-    return this.bookingService.getBookingsByRider(riderId);
+  @Get('my')
+  getMyBookings(@Request() req) {
+    return this.bookingService.getBookingsByUser(req.user.userId);
   }
 
   @Get('ride/:rideId')
@@ -35,12 +40,18 @@ export class BookingController {
     return this.bookingService.getBookingsByRide(rideId);
   }
 
+  @Get('user/:userId')
+  getBookingsByUser(@Param('userId', ParseIntPipe) userId: number) {
+    return this.bookingService.getBookingsByUser(userId);
+  }
+
   @Put(':id/status')
   updateBookingStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateStatusDto: UpdateBookingStatusDto,
+    @Request() req,
   ) {
-    return this.bookingService.updateBookingStatus(id, updateStatusDto);
+    return this.bookingService.updateBookingStatus(id, updateStatusDto, req.user.userId);
   }
 
   @Post(':id/cancel')
@@ -48,19 +59,8 @@ export class BookingController {
   cancelBooking(
     @Param('id', ParseIntPipe) id: number,
     @Body() cancelDto: { reason?: string },
+    @Request() req,
   ) {
-    return this.bookingService.cancelBooking(id, cancelDto.reason);
-  }
-
-  @Post(':id/confirm')
-  @HttpCode(200)
-  confirmBooking(@Param('id', ParseIntPipe) id: number) {
-    return this.bookingService.confirmSeatReservation(id);
-  }
-
-  @Post(':id/complete')
-  @HttpCode(200)
-  completeBooking(@Param('id', ParseIntPipe) id: number) {
-    return this.bookingService.finalizeBooking(id);
+    return this.bookingService.cancelBooking(id, req.user.userId, cancelDto.reason);
   }
 }

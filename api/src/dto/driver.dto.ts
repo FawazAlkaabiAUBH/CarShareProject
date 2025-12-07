@@ -1,20 +1,15 @@
 export class RegisterDriverDto {
   userId: number;
   licenseNumber: string;
-  vehicleInfo?: string;
-  vehiclePlate?: string;
-  vehicleType?: string;
-  vehicleModel?: string;
-  vehiclePlateNumber?: string;
-  vehicleColor?: string;
+  licenseDocument?: string; // Base64 or file path
 }
 
 export class UpdateDriverDto {
-  vehicleInfo?: string;
-  vehiclePlate?: string;
-  vehicleType?: string;
-  vehicleModel?: string;
-  vehiclePlateNumber?: string;
-  vehicleColor?: string;
-  availabilityStatus?: 'AVAILABLE' | 'BUSY' | 'OFFLINE';
+  licenseNumber?: string;
+  licenseDocument?: string; // Base64 or file path
+}
+
+export class VerifyDriverDto {
+  userId: number;
+  verifiedBy: number;
 }

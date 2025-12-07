@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
-import { User, Search, PlusCircle, Calendar, Home, Car, Bell } from 'lucide-react';
+import { apiClient } from '@/lib/api';
+import { User, Search, PlusCircle, Calendar, Home, Car, Bell, MapPin, Navigation, Clock } from 'lucide-react';
 
 interface User {
   userId: number;
@@ -14,18 +15,70 @@ interface User {
   role: 'DRIVER' | 'RIDER' | 'ADMIN';
 }
 
+interface Booking {
+  bookingId: number;
+  rideId: number;
+  userId: number;
+  seatsBooked: number;
+  totalFare: number;
+  bookingStatus: string;
+  createdAt: string;
+}
+
+interface Ride {
+  rideId: number;
+  origin: string;
+  destination: string;
+  departureTime: string;
+  farePerSeat: number;
+  availableSeats: number;
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [rides, setRides] = useState<{[key: number]: Ride}>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
       setUser(JSON.parse(userData));
+      fetchUserBookings(JSON.parse(userData));
     } else {
       router.push('/login');
     }
   }, [router]);
+
+  const fetchUserBookings = async (userData: User) => {
+    try {
+      setLoading(true);
+      
+      // Get bookings directly by userId
+      const bookingsResponse = await apiClient.get(`/bookings/user/${userData.userId}`);
+      const userBookings = bookingsResponse.data.filter(
+        (b: Booking) => b.bookingStatus !== 'CANCELLED'
+      );
+      setBookings(userBookings);
+
+      // Fetch ride details for each booking
+      const ridePromises = userBookings.map((booking: Booking) =>
+        apiClient.get(`/rides/${booking.rideId}`)
+      );
+      const rideResponses = await Promise.all(ridePromises);
+      
+      const ridesMap: {[key: number]: Ride} = {};
+      rideResponses.forEach((response) => {
+        ridesMap[response.data.rideId] = response.data;
+      });
+      setRides(ridesMap);
+    } catch (error) {
+      console.error('Failed to fetch bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!user) return null;
 
@@ -78,20 +131,87 @@ export default function DashboardPage() {
         {/* My Bookings */}
         <div className="mb-8">
           <h2 className="text-xl font-medium text-white mb-4">My Bookings</h2>
-          <Card variant="default">
-            <div className="text-center py-8">
-              <Calendar className="w-16 h-16 mx-auto mb-4 text-[#6a7282]" />
-              <p className="text-[#99a1af]">No active bookings</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={() => router.push('/find-ride')}
-              >
-                Find a Ride
-              </Button>
+          {loading ? (
+            <Card variant="default">
+              <div className="text-center py-8">
+                <div className="inline-block w-8 h-8 border-4 border-[#dc143c] border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-[#99a1af]">Loading bookings...</p>
+              </div>
+            </Card>
+          ) : bookings.length === 0 ? (
+            <Card variant="default">
+              <div className="text-center py-8">
+                <Calendar className="w-16 h-16 mx-auto mb-4 text-[#6a7282]" />
+                <p className="text-[#99a1af]">No active bookings</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={() => router.push('/find-ride')}
+                >
+                  Find a Ride
+                </Button>
+              </div>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {bookings.slice(0, 3).map((booking) => {
+                const ride = rides[booking.rideId];
+                if (!ride) return null;
+                
+                const pickupDate = new Date(ride.departureTime);
+                
+                return (
+                  <Card
+                    key={booking.bookingId}
+                    variant="glass"
+                    className="cursor-pointer hover:bg-white/10"
+                    onClick={() => router.push(`/booking/${booking.bookingId}`)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="w-2 h-2 bg-[#10b981] rounded-full" />
+                          <p className="text-white font-medium text-sm truncate">{ride.origin}</p>
+                        </div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <div className="w-2 h-2 bg-[#dc143c] rounded-full" />
+                          <p className="text-white font-medium text-sm truncate">{ride.destination}</p>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs text-[#99a1af]">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            {pickupDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {pickupDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                          <span>{booking.seatsBooked} seat{booking.seatsBooked > 1 ? 's' : ''}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[#dc143c] font-bold">{booking.totalFare.toFixed(2)} BD</p>
+                        <span className="inline-block px-2 py-1 bg-[#10b981]/20 text-[#10b981] text-xs rounded-full mt-1">
+                          {booking.bookingStatus}
+                        </span>
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+              {bookings.length > 3 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={() => router.push('/bookings')}
+                >
+                  View All Bookings
+                </Button>
+              )}
             </div>
-          </Card>
+          )}
         </div>
 
         {/* Stats */}

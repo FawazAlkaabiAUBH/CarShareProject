@@ -1,13 +1,48 @@
+import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator';
+
 export class CreateUserDto {
+  @IsNotEmpty()
+  @IsString()
   name: string;
+
+  @IsNotEmpty()
+  @IsEmail()
   email: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @MinLength(6)
   password: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/, {
+    message: 'Phone number must be valid (e.g., +973-1234-5678 or 17001234)',
+  })
   phoneNumber: string;
-  role: 'RIDER' | 'DRIVER';
+
+  @IsOptional()
+  role?: 'USER' | 'ADMIN'; // Defaults to USER
 }
 
 export class UpdateUserDto {
+  @IsOptional()
+  @IsString()
   name?: string;
+
+  @IsOptional()
+  @IsEmail()
   email?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/, {
+    message: 'Phone number must be valid (e.g., +973-1234-5678 or 17001234)',
+  })
   phoneNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @MinLength(6)
+  password?: string;
 }

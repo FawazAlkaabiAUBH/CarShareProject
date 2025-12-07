@@ -5,6 +5,8 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { UserRepository } from '../repositories/user.repository';
+import { RiderRepository } from '../repositories/rider.repository';
+import { DriverRepository } from '../repositories/driver.repository';
 import { DatabaseService } from '../database/database.service';
 
 @Module({
@@ -16,7 +18,14 @@ import { DatabaseService } from '../database/database.service';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, UserRepository, DatabaseService],
+  providers: [
+    AuthService, 
+    JwtStrategy, 
+    UserRepository, 
+    RiderRepository, 
+    DriverRepository, 
+    DatabaseService
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -24,39 +24,25 @@ export class RiderController {
     return this.riderService.getRiderByUserId(userId);
   }
 
-  @Get(':id')
-  getRider(@Param('id', ParseIntPipe) id: number) {
-    return this.riderService.getRiderById(id);
-  }
-
   @Get()
   getAllRiders() {
     return this.riderService.getAllRiders();
   }
 
-  @Put(':id')
+  @Put('user/:userId')
   updateRider(
-    @Param('id', ParseIntPipe) id: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @Body() updateRiderDto: UpdateRiderDto,
   ) {
-    return this.riderService.updateRider(id, updateRiderDto);
+    return this.riderService.updateRider(userId, updateRiderDto);
   }
 
-  @Put(':id/payment-method')
-  updatePaymentMethod(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() methodDto: { method: string },
+  @Put('user/:userId/pickup-location')
+  updatePickupLocation(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Body() locationDto: { location: string },
   ) {
-    this.riderService.updatePaymentMethod(id, methodDto.method);
-    return { message: 'Payment method updated successfully' };
-  }
-
-  @Put(':id/loyalty')
-  updateLoyaltyPoints(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() loyaltyDto: { points: number },
-  ) {
-    this.riderService.incrementLoyaltyPoints(id, loyaltyDto.points);
-    return { message: 'Loyalty points updated successfully' };
+    this.riderService.updatePickupLocation(userId, locationDto.location);
+    return { message: 'Pickup location updated successfully' };
   }
 }

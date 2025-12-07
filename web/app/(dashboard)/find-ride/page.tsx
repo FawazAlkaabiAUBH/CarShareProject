@@ -11,11 +11,11 @@ import { ChevronLeft, MapPin, Navigation, Calendar, User, Clock, Car } from 'luc
 
 interface Ride {
   rideId: number;
-  driverId: number;
-  pickupLocation: string;
-  dropoffLocation: string;
-  pickupTime: string;
-  fareEstimate: number;
+  userId: number;
+  origin: string;
+  destination: string;
+  departureTime: string;
+  farePerSeat: number;
   availableSeats: number;
   rideStatus: string;
 }
@@ -40,10 +40,10 @@ export default function FindRidePage() {
       // Use search endpoint with optional parameters
       const params = new URLSearchParams();
       if (searchParams.pickup) {
-        params.append('pickupLocation', searchParams.pickup);
+        params.append('origin', searchParams.pickup);
       }
       if (searchParams.dropoff) {
-        params.append('dropoffLocation', searchParams.dropoff);
+        params.append('destination', searchParams.dropoff);
       }
       
       const endpoint = params.toString() 
@@ -151,11 +151,11 @@ export default function FindRidePage() {
                       <div className="mb-3">
                         <div className="flex items-center gap-2 mb-1">
                           <div className="w-2 h-2 bg-[#10b981] rounded-full" />
-                          <p className="text-white font-medium truncate">{ride.pickupLocation}</p>
+                          <p className="text-white font-medium truncate">{ride.origin}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 bg-[#dc143c] rounded-full" />
-                          <p className="text-white font-medium truncate">{ride.dropoffLocation}</p>
+                          <p className="text-white font-medium truncate">{ride.destination}</p>
                         </div>
                       </div>
 
@@ -163,7 +163,7 @@ export default function FindRidePage() {
                       <div className="flex items-center gap-4 text-sm text-[#99a1af]">
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          {new Date(ride.pickupTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(ride.departureTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         <span>{ride.availableSeats} seats</span>
                       </div>
@@ -172,7 +172,7 @@ export default function FindRidePage() {
                     {/* Price */}
                     <div className="text-right">
                       <p className="text-xl font-bold text-[#dc143c]">
-                        {ride.fareEstimate.toFixed(2)} BD
+                        {ride.farePerSeat.toFixed(2)} BD
                       </p>
                       <p className="text-xs text-[#99a1af]">per seat</p>
                     </div>

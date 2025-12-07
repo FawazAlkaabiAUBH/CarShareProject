@@ -39,14 +39,14 @@ export class RatingRepository {
     if (!rating.ratingId) {
       // Insert new rating
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO ratings (rideId, raterId, rateeId, score, comment, isFlagged, feedbackTags, createdAt, updatedAt)
+        INSERT INTO ratings (rideId, raterUserId, ratedUserId, score, comment, isFlagged, feedbackTags, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
         rating.rideId,
-        rating.raterId!,
-        rating.rateeId!,
+        rating.raterUserId!,
+        rating.ratedUserId!,
         rating.score,
         rating.comment ?? null,
         rating.isFlagged ?? false ? 1 : 0,
@@ -60,14 +60,14 @@ export class RatingRepository {
       // Update existing rating
       const stmt = this.db.getDatabase().prepare(`
         UPDATE ratings
-        SET rideId = ?, raterId = ?, rateeId = ?, score = ?, comment = ?, isFlagged = ?, feedbackTags = ?, updatedAt = ?
+        SET rideId = ?, raterUserId = ?, ratedUserId = ?, score = ?, comment = ?, isFlagged = ?, feedbackTags = ?, updatedAt = ?
         WHERE ratingId = ?
       `);
 
       stmt.run(
         rating.rideId,
-        rating.raterId!,
-        rating.rateeId!,
+        rating.raterUserId!,
+        rating.ratedUserId!,
         rating.score,
         rating.comment ?? null,
         rating.isFlagged! ? 1 : 0,
@@ -109,42 +109,29 @@ export class RatingRepository {
       .run(score, comment, new Date().toISOString(), ratingId);
   }
 
-  findByDriver(driverId: number): Rating[] {
+  findByUser(userId: number): Rating[] {
     const rows = this.db
       .getDatabase()
-      .prepare(
-        'SELECT r.* FROM ratings r JOIN rides rd ON r.rideId = rd.rideId WHERE rd.driverId = ?',
-      )
-      .all(driverId) as any[];
+      .prepare('SELECT * FROM ratings WHERE raterUserId = ?')
+      .all(userId) as any[];
 
     return rows.map((row) => this.mapToEntity(row));
   }
 
-  findByRider(riderId: number): Rating[] {
+  findForUser(userId: number): Rating[] {
     const rows = this.db
       .getDatabase()
-      .prepare('SELECT * FROM ratings WHERE raterId = ?')
-      .all(riderId) as any[];
+      .prepare('SELECT * FROM ratings WHERE ratedUserId = ?')
+      .all(userId) as any[];
 
     return rows.map((row) => this.mapToEntity(row));
   }
 
-  getAverageForDriver(driverId: number): number {
+  getAverageForUser(userId: number): number {
     const result = this.db
       .getDatabase()
-      .prepare(
-        'SELECT AVG(r.score) as avg FROM ratings r JOIN rides rd ON r.rideId = rd.rideId WHERE rd.driverId = ?',
-      )
-      .get(driverId) as any;
-
-    return result?.avg || 0;
-  }
-
-  getAverageForRider(riderId: number): number {
-    const result = this.db
-      .getDatabase()
-      .prepare('SELECT AVG(score) as avg FROM ratings WHERE raterId = ?')
-      .get(riderId) as any;
+      .prepare('SELECT AVG(score) as avg FROM ratings WHERE ratedUserId = ?')
+      .get(userId) as any;
 
     return result?.avg || 0;
   }
@@ -153,8 +140,8 @@ export class RatingRepository {
     return new Rating({
       ratingId: row.ratingId,
       rideId: row.rideId,
-      raterId: row.raterId,
-      rateeId: row.rateeId,
+      raterUserId: row.raterUserId,
+      ratedUserId: row.ratedUserId,
       score: row.score,
       comment: row.comment,
       isFlagged: row.isFlagged === 1,

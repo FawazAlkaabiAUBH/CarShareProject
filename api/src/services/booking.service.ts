@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { BookingRepository } from '../repositories/booking.repository';
 import { RideRepository } from '../repositories/ride.repository';
 import { RiderRepository } from '../repositories/rider.repository';
@@ -13,66 +13,87 @@ export class BookingService {
     private readonly riderRepository: RiderRepository,
   ) {}
 
-  createBooking(createBookingDto: CreateBookingDto): Booking {
-    // Verify rider exists
-    const rider = this.riderRepository.findById(createBookingDto.riderId);
+  createBooking(createBookingDto: CreateBookingDto, userId: number): Booking {
+    // Verify rider profile exists for this user
+    const rider = this.riderRepository.findByUserId(userId);
     if (!rider) {
-      throw new Error(`Rider with ID ${createBookingDto.riderId} not found`);
+      throw new NotFoundException(`Rider profile not found for user`);
     }
 
     // Verify ride exists and has available seats
     const ride = this.rideRepository.findById(createBookingDto.rideId);
     if (!ride) {
-      throw new Error(`Ride with ID ${createBookingDto.rideId} not found`);
+      throw new NotFoundException(`Ride with ID ${createBookingDto.rideId} not found`);
     }
 
-    if (ride.availableSeats <= 0) {
-      throw new Error('No available seats for this ride');
+    if (ride.availableSeats < (createBookingDto.seatsBooked || 1)) {
+      throw new BadRequestException('Not enough available seats for this ride');
+    }
+
+    // Check for duplicate booking
+    const existingBookings = this.bookingRepository.findByUser(userId);
+    const alreadyBooked = existingBookings.some(
+      b => b.rideId === createBookingDto.rideId && b.bookingStatus !== 'CANCELLED'
+    );
+    if (alreadyBooked) {
+      throw new BadRequestException('You have already booked this ride');
     }
 
     // Create booking
+    const seatsBooked = createBookingDto.seatsBooked || 1;
     const booking = this.bookingRepository.save({
-      riderId: createBookingDto.riderId,
+      userId,
       rideId: createBookingDto.rideId,
-      seatsBooked: createBookingDto.seatsBooked || 1,
-      totalFare: ride.fareEstimate * (createBookingDto.seatsBooked || 1),
+      seatsBooked,
+      totalFare: ride.farePerSeat * seatsBooked,
       bookingStatus: 'PENDING',
     });
 
     // Decrement available seats
-    this.rideRepository.decrementSeats(createBookingDto.rideId);
+    this.rideRepository.decrementSeats(createBookingDto.rideId, seatsBooked);
 
     // Update ride status if all seats are booked
-    if (ride.availableSeats === 1) {
-      // Was 1, now 0
+    const updatedRide = this.rideRepository.findById(createBookingDto.rideId);
+    if (updatedRide && updatedRide.availableSeats === 0) {
       this.rideRepository.updateStatus(createBookingDto.rideId, 'BOOKED');
     }
 
     return booking;
   }
 
-  cancelBooking(bookingId: number, reason?: string, cancelledBy?: number): Booking {
+  cancelBooking(bookingId: number, userId: number, reason?: string): Booking {
     const booking = this.bookingRepository.findById(bookingId);
     if (!booking) {
-      throw new Error(`Booking with ID ${bookingId} not found`);
+      throw new NotFoundException(`Booking with ID ${bookingId} not found`);
+    }
+
+    // Verify the booking belongs to the current user
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You can only cancel your own bookings');
+    }
+
+    if (booking.bookingStatus === 'CANCELLED') {
+      throw new BadRequestException('Booking is already cancelled');
     }
 
     // Increment seats back
-    this.rideRepository.incrementSeats(booking.rideId);
+    this.rideRepository.incrementSeats(booking.rideId, booking.seatsBooked);
 
     // Cancel booking
     this.bookingRepository.setCancellationReason(
       bookingId,
       reason || 'Cancelled by user',
-      cancelledBy || booking.riderId,
+      userId,
     );
+
+    this.bookingRepository.updateStatus(bookingId, 'CANCELLED');
 
     // Update ride status back to available
     this.rideRepository.updateStatus(booking.rideId, 'AVAILABLE');
 
     const updatedBooking = this.bookingRepository.findById(bookingId);
     if (!updatedBooking) {
-      throw new Error(`Failed to retrieve booking with ID ${bookingId}`);
+      throw new NotFoundException(`Failed to retrieve booking with ID ${bookingId}`);
     }
     return updatedBooking;
   }
@@ -80,26 +101,32 @@ export class BookingService {
   updateBookingStatus(
     bookingId: number,
     updateStatusDto: UpdateBookingStatusDto,
+    userId: number,
   ): Booking {
     const booking = this.bookingRepository.findById(bookingId);
     if (!booking) {
-      throw new Error(`Booking with ID ${bookingId} not found`);
+      throw new NotFoundException(`Booking with ID ${bookingId} not found`);
+    }
+
+    // Verify the booking belongs to the current user
+    if (booking.userId !== userId) {
+      throw new ForbiddenException('You can only update your own bookings');
     }
 
     if (updateStatusDto.status === 'CANCELLED') {
-      return this.cancelBooking(bookingId, updateStatusDto.cancellationReason);
+      return this.cancelBooking(bookingId, userId, updateStatusDto.cancellationReason);
     }
 
     this.bookingRepository.updateStatus(bookingId, updateStatusDto.status);
     const updatedBooking = this.bookingRepository.findById(bookingId);
     if (!updatedBooking) {
-      throw new Error(`Failed to retrieve booking with ID ${bookingId}`);
+      throw new NotFoundException(`Failed to retrieve booking with ID ${bookingId}`);
     }
     return updatedBooking;
   }
 
-  getBookingsByRider(riderId: number): Booking[] {
-    return this.bookingRepository.findByRider(riderId);
+  getBookingsByUser(userId: number): Booking[] {
+    return this.bookingRepository.findByUser(userId);
   }
 
   getBookingsByRide(rideId: number): Booking[] {
@@ -109,32 +136,7 @@ export class BookingService {
   getBookingById(bookingId: number): Booking {
     const booking = this.bookingRepository.findById(bookingId);
     if (!booking) {
-      throw new Error(`Booking with ID ${bookingId} not found`);
-    }
-    return booking;
-  }
-
-  confirmSeatReservation(bookingId: number): Booking {
-    this.bookingRepository.updateStatus(bookingId, 'CONFIRMED');
-    
-    // Award loyalty points
-    const booking = this.bookingRepository.findById(bookingId);
-    if (booking) {
-      this.riderRepository.incrementLoyaltyPoints(booking.riderId, 10);
-    }
-    
-    const updatedBooking = this.bookingRepository.findById(bookingId);
-    if (!updatedBooking) {
-      throw new Error(`Failed to retrieve booking with ID ${bookingId}`);
-    }
-    return updatedBooking;
-  }
-
-  finalizeBooking(bookingId: number): Booking {
-    this.bookingRepository.markCompleted(bookingId, new Date());
-    const booking = this.bookingRepository.findById(bookingId);
-    if (!booking) {
-      throw new Error(`Failed to retrieve booking with ID ${bookingId}`);
+      throw new NotFoundException(`Booking with ID ${bookingId} not found`);
     }
     return booking;
   }
