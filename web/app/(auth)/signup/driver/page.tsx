@@ -13,12 +13,11 @@ export default function DriverSignupPage() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     // User info
-    name: '',
+    fullName: '',
     email: '',
     phoneNumber: '',
     password: '',
     confirmPassword: '',
-    role: 'DRIVER' as const,
     // Driver specific info
     licenseNumber: '',
     licenseDocument: '',
@@ -60,7 +59,7 @@ export default function DriverSignupPage() {
     const phoneRegex = /^\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
     
     if (step === 1) {
-      if (!formData.email || !formData.name || !formData.phoneNumber) {
+      if (!formData.email || !formData.fullName || !formData.phoneNumber) {
         setError('Please fill in all fields');
         return;
       }
@@ -116,7 +115,7 @@ export default function DriverSignupPage() {
     try {
       // First, create the user account
       const authResponse = await apiClient.post('/auth/register', {
-        name: formData.name,
+        fullName: formData.fullName,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         password: formData.password,
@@ -216,8 +215,8 @@ export default function DriverSignupPage() {
                 type="text"
                 label="Full Name"
                 placeholder="Ahmed Ali"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 required
                 icon={<User className="w-5 h-5" />}
               />

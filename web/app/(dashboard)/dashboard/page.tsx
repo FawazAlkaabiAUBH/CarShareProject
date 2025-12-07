@@ -10,9 +10,9 @@ import { User, Search, PlusCircle, Calendar, Home, Car, Bell, MapPin, Navigation
 
 interface User {
   userId: number;
-  name: string;
+  fullName: string;
   email: string;
-  role: 'DRIVER' | 'RIDER' | 'ADMIN';
+  role: 'USER' | 'ADMIN';
 }
 
 interface Booking {
@@ -89,7 +89,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <p className="text-[#99a1af] text-sm">Welcome back,</p>
-            <h1 className="text-2xl font-medium text-white">{user.name}</h1>
+            <h1 className="text-2xl font-medium text-white">{user.fullName || 'User'}</h1>
           </div>
           <IconButton
             icon={<User className="w-6 h-6 text-slate-300" />}

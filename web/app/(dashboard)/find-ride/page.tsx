@@ -18,6 +18,8 @@ interface Ride {
   farePerSeat: number;
   availableSeats: number;
   rideStatus: string;
+  driverName?: string;
+  driverPhone?: string;
 }
 
 export default function FindRidePage() {
@@ -147,6 +149,9 @@ export default function FindRidePage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
+                      {/* Driver Name */}
+                      <p className="text-sm text-[#99a1af] mb-2">{ride.driverName || 'Unknown Driver'}</p>
+                      
                       {/* Route */}
                       <div className="mb-3">
                         <div className="flex items-center gap-2 mb-1">
@@ -163,7 +168,12 @@ export default function FindRidePage() {
                       <div className="flex items-center gap-4 text-sm text-[#99a1af]">
                         <span className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
-                          {new Date(ride.departureTime).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                          {ride.departureTime ? new Date(ride.departureTime).toLocaleString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          }) : 'Invalid Date'}
                         </span>
                         <span>{ride.availableSeats} seats</span>
                       </div>

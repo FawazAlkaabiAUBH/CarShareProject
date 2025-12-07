@@ -24,39 +24,48 @@ export class RideRepository {
     return rows.map((row) => this.mapToEntity(row));
   }
 
-  findAvailable(pickupLocation?: string, dropoffLocation?: string, at?: Date, startDate?: Date, endDate?: Date): Ride[] {
-    let query = `SELECT * FROM rides WHERE rideStatus = 'AVAILABLE' AND availableSeats > 0`;
+  findAvailable(origin?: string, destination?: string, at?: Date, startDate?: Date, endDate?: Date): any[] {
+    let query = `
+      SELECT r.*, u.fullName as driverName, u.phoneNumber as driverPhone
+      FROM rides r
+      LEFT JOIN users u ON r.userId = u.userId
+      WHERE r.rideStatus = 'AVAILABLE' AND r.availableSeats > 0
+    `;
     const params: any[] = [];
 
-    if (pickupLocation) {
-      query += ` AND pickupLocation LIKE ? COLLATE NOCASE`;
-      params.push(`%${pickupLocation}%`);
+    if (origin) {
+      query += ` AND r.origin LIKE ? COLLATE NOCASE`;
+      params.push(`%${origin}%`);
     }
 
-    if (dropoffLocation) {
-      query += ` AND dropoffLocation LIKE ? COLLATE NOCASE`;
-      params.push(`%${dropoffLocation}%`);
+    if (destination) {
+      query += ` AND r.destination LIKE ? COLLATE NOCASE`;
+      params.push(`%${destination}%`);
     }
 
     if (at) {
-      query += ` AND pickupTime >= ?`;
+      query += ` AND r.departureTime >= ?`;
       params.push(at.toISOString());
     }
 
     if (startDate && endDate) {
-      query += ` AND DATE(pickupTime) BETWEEN DATE(?) AND DATE(?)`;
+      query += ` AND DATE(r.departureTime) BETWEEN DATE(?) AND DATE(?)`;
       params.push(startDate.toISOString(), endDate.toISOString());
     } else if (startDate) {
-      query += ` AND DATE(pickupTime) >= DATE(?)`;
+      query += ` AND DATE(r.departureTime) >= DATE(?)`;
       params.push(startDate.toISOString());
     } else if (endDate) {
-      query += ` AND DATE(pickupTime) <= DATE(?)`;
+      query += ` AND DATE(r.departureTime) <= DATE(?)`;
       params.push(endDate.toISOString());
     }
 
     const rows = this.db.getDatabase().prepare(query).all(...params) as any[];
 
-    return rows.map((row) => this.mapToEntity(row));
+    return rows.map((row) => ({
+      ...this.mapToEntity(row),
+      driverName: row.driverName,
+      driverPhone: row.driverPhone,
+    }));
   }
 
   save(ride: Partial<Ride>): Ride {
@@ -65,22 +74,22 @@ export class RideRepository {
     if (!ride.rideId) {
       // Insert new ride
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO rides (userId, vehicleId, pickupLocation, dropoffLocation, pickupTime, dropoffTime, rideStatus, farePerSeat, totalSeats, availableSeats, createdAt, updatedAt)
+        INSERT INTO rides (userId, vehicleId, origin, destination, departureTime, arrivalTime, rideStatus, farePerSeat, totalSeats, availableSeats, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
         ride.userId,
         ride.vehicleId,
-        ride.pickupLocation,
-        ride.dropoffLocation,
-        ride.pickupTime instanceof Date
-          ? ride.pickupTime.toISOString()
-          : ride.pickupTime,
-        ride.dropoffTime
-          ? ride.dropoffTime instanceof Date
-            ? ride.dropoffTime.toISOString()
-            : ride.dropoffTime
+        ride.origin,
+        ride.destination,
+        ride.departureTime instanceof Date
+          ? ride.departureTime.toISOString()
+          : ride.departureTime,
+        ride.arrivalTime
+          ? ride.arrivalTime instanceof Date
+            ? ride.arrivalTime.toISOString()
+            : ride.arrivalTime
           : null,
         ride.rideStatus || 'AVAILABLE',
         ride.farePerSeat,
@@ -95,22 +104,22 @@ export class RideRepository {
       // Update existing ride
       const stmt = this.db.getDatabase().prepare(`
         UPDATE rides
-        SET userId = ?, vehicleId = ?, pickupLocation = ?, dropoffLocation = ?, pickupTime = ?, dropoffTime = ?, rideStatus = ?, farePerSeat = ?, totalSeats = ?, availableSeats = ?, updatedAt = ?
+        SET userId = ?, vehicleId = ?, origin = ?, destination = ?, departureTime = ?, arrivalTime = ?, rideStatus = ?, farePerSeat = ?, totalSeats = ?, availableSeats = ?, updatedAt = ?
         WHERE rideId = ?
       `);
 
       stmt.run(
         ride.userId,
         ride.vehicleId,
-        ride.pickupLocation,
-        ride.dropoffLocation,
-        ride.pickupTime instanceof Date
-          ? ride.pickupTime.toISOString()
-          : ride.pickupTime,
-        ride.dropoffTime
-          ? ride.dropoffTime instanceof Date
-            ? ride.dropoffTime.toISOString()
-            : ride.dropoffTime
+        ride.origin,
+        ride.destination,
+        ride.departureTime instanceof Date
+          ? ride.departureTime.toISOString()
+          : ride.departureTime,
+        ride.arrivalTime
+          ? ride.arrivalTime instanceof Date
+            ? ride.arrivalTime.toISOString()
+            : ride.arrivalTime
           : null,
         ride.rideStatus,
         ride.farePerSeat,
@@ -140,13 +149,13 @@ export class RideRepository {
       .run(status, new Date().toISOString(), rideId);
   }
 
-  updateLocations(rideId: number, pickup: string, dropoff: string): void {
+  updateLocations(rideId: number, origin: string, destination: string): void {
     this.db
       .getDatabase()
       .prepare(
-        'UPDATE rides SET pickupLocation = ?, dropoffLocation = ?, updatedAt = ? WHERE rideId = ?',
+        'UPDATE rides SET origin = ?, destination = ?, updatedAt = ? WHERE rideId = ?',
       )
-      .run(pickup, dropoff, new Date().toISOString(), rideId);
+      .run(origin, destination, new Date().toISOString(), rideId);
   }
 
   updateFarePerSeat(rideId: number, farePerSeat: number): void {
@@ -186,10 +195,10 @@ export class RideRepository {
       rideId: row.rideId,
       userId: row.userId,
       vehicleId: row.vehicleId,
-      pickupLocation: row.pickupLocation,
-      dropoffLocation: row.dropoffLocation,
-      pickupTime: new Date(row.pickupTime),
-      dropoffTime: row.dropoffTime ? new Date(row.dropoffTime) : undefined,
+      origin: row.origin,
+      destination: row.destination,
+      departureTime: new Date(row.departureTime),
+      arrivalTime: row.arrivalTime ? new Date(row.arrivalTime) : undefined,
       rideStatus: row.rideStatus,
       farePerSeat: row.farePerSeat,
       totalSeats: row.totalSeats,

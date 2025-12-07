@@ -1,6 +1,6 @@
 export class User {
   userId: number;
-  name: string;
+  fullName: string;
   email: string;
   password: string; // Hashed password
   phoneNumber: string;

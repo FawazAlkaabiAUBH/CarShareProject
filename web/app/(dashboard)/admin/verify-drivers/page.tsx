@@ -15,7 +15,7 @@ interface Driver {
   vehicleDocument?: string;
   isVerified: boolean;
   user: {
-    name: string;
+    fullName: string;
     email: string;
     phoneNumber: string;
   };
@@ -173,7 +173,7 @@ export default function VerifyDriversPage() {
                       <User className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-medium text-white">{driver.user.name}</h3>
+                      <h3 className="text-lg font-medium text-white">{driver.user.fullName}</h3>
                       <p className="text-[#99a1af] text-sm">{driver.user.email}</p>
                       <p className="text-[#99a1af] text-sm">License: {driver.licenseNumber}</p>
                     </div>
@@ -194,7 +194,7 @@ export default function VerifyDriversPage() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[#99a1af]">Name</span>
-                  <span className="text-white">{selectedDriver.user.name}</span>
+                  <span className="text-white">{selectedDriver.user.fullName}</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-[#99a1af]">Email</span>

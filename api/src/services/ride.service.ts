@@ -42,9 +42,9 @@ export class RideService {
     const ride = this.rideRepository.save({
       userId,
       vehicleId: createRideDto.vehicleId,
-      pickupLocation: createRideDto.pickupLocation,
-      dropoffLocation: createRideDto.dropoffLocation,
-      pickupTime: new Date(createRideDto.pickupTime),
+      origin: createRideDto.origin,
+      destination: createRideDto.destination,
+      departureTime: new Date(createRideDto.departureTime),
       farePerSeat: createRideDto.farePerSeat,
       totalSeats: createRideDto.totalSeats,
       availableSeats: createRideDto.totalSeats,
@@ -79,9 +79,9 @@ export class RideService {
     const updatedRide = {
       ...ride,
       ...updateRideDto,
-      pickupTime: updateRideDto.pickupTime
-        ? new Date(updateRideDto.pickupTime)
-        : ride.pickupTime,
+      departureTime: updateRideDto.departureTime
+        ? new Date(updateRideDto.departureTime)
+        : ride.departureTime,
     };
 
     return this.rideRepository.save(updatedRide);
@@ -131,14 +131,14 @@ export class RideService {
       throw new ForbiddenException('You can only complete your own rides');
     }
 
-    ride.dropoffTime = new Date();
+    ride.arrivalTime = new Date();
     ride.rideStatus = 'COMPLETED';
     return this.rideRepository.save(ride);
   }
 
-  getAvailableRides(pickupLocation?: string, dropoffLocation?: string, startDate?: Date, endDate?: Date): Ride[] {
+  getAvailableRides(origin?: string, destination?: string, startDate?: Date, endDate?: Date): Ride[] {
     const now = new Date();
-    return this.rideRepository.findAvailable(pickupLocation, dropoffLocation, now, startDate, endDate);
+    return this.rideRepository.findAvailable(origin, destination, now, startDate, endDate);
   }
 
   getRidesByDriver(userId: number): Ride[] {

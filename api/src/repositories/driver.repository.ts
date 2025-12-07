@@ -141,6 +141,7 @@ export class DriverRepository {
       userId: row.userId,
       licenseNumber: row.licenseNumber,
       licenseDocument: row.licenseDocument,
+      isVerified: !!row.isVerified,
       rating: row.rating,
       totalRides: row.totalRides,
       verifiedAt: row.verifiedAt ? new Date(row.verifiedAt) : undefined,

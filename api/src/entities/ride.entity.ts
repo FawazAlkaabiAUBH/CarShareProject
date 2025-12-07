@@ -2,10 +2,10 @@ export class Ride {
   rideId: number;
   userId: number;
   vehicleId: number;
-  pickupLocation: string;
-  dropoffLocation: string;
-  pickupTime: Date;
-  dropoffTime: Date | null;
+  origin: string;
+  destination: string;
+  departureTime: Date;
+  arrivalTime: Date | null;
   rideStatus: 'AVAILABLE' | 'BOOKED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   farePerSeat: number;
   availableSeats: number;

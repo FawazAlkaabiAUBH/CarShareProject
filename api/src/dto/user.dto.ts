@@ -3,7 +3,7 @@ import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'c
 export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
-  name: string;
+  fullName: string;
 
   @IsNotEmpty()
   @IsEmail()
@@ -28,7 +28,7 @@ export class CreateUserDto {
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  fullName?: string;
 
   @IsOptional()
   @IsEmail()

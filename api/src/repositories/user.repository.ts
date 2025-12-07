@@ -38,7 +38,7 @@ export class UserRepository {
     const rows = this.db
       .getDatabase()
       .prepare(
-        'SELECT * FROM users WHERE name LIKE ? OR email LIKE ? COLLATE NOCASE',
+        'SELECT * FROM users WHERE fullName LIKE ? OR email LIKE ? COLLATE NOCASE',
       )
       .all(searchTerm, searchTerm) as any[];
 
@@ -51,12 +51,12 @@ export class UserRepository {
     if (!user.userId) {
       // Insert new user
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO users (name, email, password, phoneNumber, role, accountStatus, createdAt, updatedAt, lastLogin)
+        INSERT INTO users (fullName, email, password, phoneNumber, role, accountStatus, createdAt, updatedAt, lastLogin)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
-        user.name,
+        user.fullName,
         user.email,
         user.password,
         user.phoneNumber || null,
@@ -72,12 +72,12 @@ export class UserRepository {
       // Update existing user
       const stmt = this.db.getDatabase().prepare(`
         UPDATE users
-        SET name = ?, email = ?, phoneNumber = ?, role = ?, accountStatus = ?, updatedAt = ?, lastLogin = ?
+        SET fullName = ?, email = ?, phoneNumber = ?, role = ?, accountStatus = ?, updatedAt = ?, lastLogin = ?
         WHERE userId = ?
       `);
 
       stmt.run(
-        user.name,
+        user.fullName,
         user.email,
         user.phoneNumber || null,
         user.role,
@@ -135,7 +135,7 @@ export class UserRepository {
   private mapToEntity(row: any): User {
     return new User({
       userId: row.userId,
-      name: row.name,
+      fullName: row.fullName,
       email: row.email,
       password: row.password,
       phoneNumber: row.phoneNumber,

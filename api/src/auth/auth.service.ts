@@ -27,7 +27,7 @@ export class AuthService {
 
     // Create user with USER role (no driver option during signup)
     const user = this.userRepository.save({
-      name: createUserDto.name,
+      fullName: createUserDto.fullName,
       email: createUserDto.email,
       password: hashedPassword,
       phoneNumber: createUserDto.phoneNumber,

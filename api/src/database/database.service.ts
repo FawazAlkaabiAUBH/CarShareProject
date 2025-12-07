@@ -29,7 +29,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS users (
         userId INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
+        fullName TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         phoneNumber TEXT NOT NULL,
@@ -96,10 +96,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         rideId INTEGER PRIMARY KEY AUTOINCREMENT,
         userId INTEGER NOT NULL,
         vehicleId INTEGER NOT NULL,
-        pickupLocation TEXT NOT NULL,
-        dropoffLocation TEXT NOT NULL,
-        pickupTime TEXT NOT NULL,
-        dropoffTime TEXT,
+        origin TEXT NOT NULL,
+        destination TEXT NOT NULL,
+        departureTime TEXT NOT NULL,
+        arrivalTime TEXT,
         rideStatus TEXT NOT NULL CHECK(rideStatus IN ('AVAILABLE', 'BOOKED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
         farePerSeat REAL NOT NULL,
         availableSeats INTEGER NOT NULL,
@@ -183,7 +183,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     // Seed users (role is now USER or ADMIN, not DRIVER/RIDER)
     const insertUser = this.db.prepare(`
-      INSERT INTO users (name, email, password, phoneNumber, role, accountStatus, createdAt, updatedAt, lastLogin)
+      INSERT INTO users (fullName, email, password, phoneNumber, role, accountStatus, createdAt, updatedAt, lastLogin)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
@@ -260,7 +260,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     tomorrow.setHours(8, 0, 0, 0);
 
     const insertRide = this.db.prepare(`
-      INSERT INTO rides (userId, vehicleId, pickupLocation, dropoffLocation, pickupTime, dropoffTime, rideStatus, farePerSeat, availableSeats, totalSeats, createdAt, updatedAt)
+      INSERT INTO rides (userId, vehicleId, origin, destination, departureTime, arrivalTime, rideStatus, farePerSeat, availableSeats, totalSeats, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 

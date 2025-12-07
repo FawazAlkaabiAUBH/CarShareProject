@@ -25,9 +25,9 @@ export default function OfferRidePage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [userId, setUserId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    pickupLocation: '',
-    dropoffLocation: '',
-    pickupTime: '',
+    origin: '',
+    destination: '',
+    departureTime: '',
     availableSeats: '4',
     fareEstimate: '',
     vehicleId: '',
@@ -44,10 +44,10 @@ export default function OfferRidePage() {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       setUserId(user.userId);
       
-      // Check if user has a driver profile
-      const driverResponse = await apiClient.get(`/drivers/user/${user.userId}`);
+      // Check if user has a driver profile using status endpoint
+      const statusResponse = await apiClient.get(`/drivers/user/${user.userId}/status`);
       
-      if (driverResponse.data && driverResponse.data.isVerified) {
+      if (statusResponse.data.isDriver && statusResponse.data.isVerified) {
         setIsDriver(true);
         
         // Fetch active vehicles
@@ -58,7 +58,7 @@ export default function OfferRidePage() {
         if (vehiclesResponse.data.length > 0) {
           setFormData(prev => ({ ...prev, vehicleId: vehiclesResponse.data[0].vehicleId.toString() }));
         }
-      } else if (driverResponse.data && !driverResponse.data.isVerified) {
+      } else if (statusResponse.data.isDriver && !statusResponse.data.isVerified) {
         setIsDriver(false);
         setError('Your driver account is pending verification.');
       } else {
@@ -85,12 +85,11 @@ export default function OfferRidePage() {
       const response = await apiClient.post('/rides', {
         userId: userId,
         vehicleId: parseInt(formData.vehicleId),
-        origin: formData.pickupLocation,
-        destination: formData.dropoffLocation,
-        departureTime: new Date(formData.pickupTime).toISOString(),
-        availableSeats: parseInt(formData.availableSeats),
+        origin: formData.origin,
+        destination: formData.destination,
+        departureTime: new Date(formData.departureTime).toISOString(),
+        totalSeats: parseInt(formData.availableSeats),
         farePerSeat: parseFloat(formData.fareEstimate) || 0,
-        rideStatus: 'AVAILABLE',
       });
 
       if (response.data) {
@@ -235,16 +234,16 @@ export default function OfferRidePage() {
 
             <Input
               placeholder="Pickup Location"
-              value={formData.pickupLocation}
-              onChange={(e) => setFormData({ ...formData, pickupLocation: e.target.value })}
+              value={formData.origin}
+              onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
               required
               icon={<MapPin className="w-5 h-5" />}
             />
 
             <Input
               placeholder="Dropoff Location"
-              value={formData.dropoffLocation}
-              onChange={(e) => setFormData({ ...formData, dropoffLocation: e.target.value })}
+              value={formData.destination}
+              onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
               required
               icon={<Navigation className="w-5 h-5" />}
             />
@@ -252,8 +251,8 @@ export default function OfferRidePage() {
             <Input
               type="datetime-local"
               label="Pickup Time"
-              value={formData.pickupTime}
-              onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
+              value={formData.departureTime}
+              onChange={(e) => setFormData({ ...formData, departureTime: e.target.value })}
               required
               icon={<Clock className="w-5 h-5" />}
             />

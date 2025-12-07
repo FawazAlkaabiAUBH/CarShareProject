@@ -28,9 +28,8 @@ interface Ride {
 }
 
 interface Driver {
-  driverId: number;
   userId: number;
-  vehicleInfo: string;
+  licenseNumber: string;
   rating: number;
   totalRides: number;
   isVerified: boolean;
@@ -38,14 +37,24 @@ interface Driver {
 
 interface User {
   userId: number;
-  name: string;
+  fullName: string;
   email: string;
+  phoneNumber: string;
+}
+
+interface Vehicle {
+  vehicleId: number;
+  make: string;
+  model: string;
+  year: number;
+  plateNumber: string;
+  color: string;
 }
 
 interface Booking {
   bookingId: number;
   rideId: number;
-  riderId: number;
+  userId: number;
   seatsBooked: number;
   bookingStatus: string;
 }
@@ -58,6 +67,7 @@ export default function RideDetailsPage() {
   const [ride, setRide] = useState<Ride | null>(null);
   const [driver, setDriver] = useState<Driver | null>(null);
   const [driverUser, setDriverUser] = useState<User | null>(null);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [existingBooking, setExistingBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
@@ -75,13 +85,17 @@ export default function RideDetailsPage() {
       const rideResponse = await apiClient.get(`/rides/${rideId}`);
       setRide(rideResponse.data);
 
-      // Fetch driver details
-      const driverResponse = await apiClient.get(`/users/${rideResponse.data.userId}`);
+      // Fetch driver details from drivers endpoint
+      const driverResponse = await apiClient.get(`/drivers/user/${rideResponse.data.userId}`);
       setDriver(driverResponse.data);
 
-      // Fetch driver user info
-      const driverUserResponse = await apiClient.get(`/users/${driverResponse.data.userId}`);
+      // Fetch driver user info from users endpoint
+      const driverUserResponse = await apiClient.get(`/users/${rideResponse.data.userId}`);
       setDriverUser(driverUserResponse.data);
+
+      // Fetch vehicle info
+      const vehicleResponse = await apiClient.get(`/vehicles/${rideResponse.data.vehicleId}`);
+      setVehicle(vehicleResponse.data);
 
       // Check if user already booked this ride
       const userStr = localStorage.getItem('user');
@@ -125,9 +139,7 @@ export default function RideDetailsPage() {
 
       const bookingData = {
         rideId: ride.rideId,
-        userId: user.userId,
         seatsBooked: seatsToBook,
-        totalFare: ride.farePerSeat * seatsToBook,
       };
 
       await apiClient.post('/bookings', bookingData);
@@ -267,23 +279,27 @@ export default function RideDetailsPage() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-white font-semibold">{driverUser.name}</p>
+                  <p className="text-white font-semibold">{driverUser.fullName}</p>
                   {driver.isVerified && (
                     <CheckCircle2 className="w-4 h-4 text-[#10b981]" />
                   )}
                 </div>
-                <p className="text-[#99a1af] text-sm">{driver.totalRides} rides</p>
+                <p className="text-[#99a1af] text-sm">{driverUser.phoneNumber}</p>
                 <div className="flex items-center gap-1 mt-1">
                   <span className="text-[#fbbf24]">★</span>
                   <span className="text-white text-sm font-medium">{driver.rating?.toFixed(1) || 'N/A'}</span>
+                  <span className="text-[#99a1af] text-sm ml-1">• {driver.totalRides} rides</span>
                 </div>
               </div>
               <Car className="w-6 h-6 text-[#99a1af]" />
             </div>
-            <div className="mt-4 pt-4 border-t border-white/10">
-              <p className="text-[#99a1af] text-sm mb-1">Vehicle</p>
-              <p className="text-white">{driver.vehicleInfo}</p>
-            </div>
+            {vehicle && (
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <p className="text-[#99a1af] text-sm mb-1">Vehicle</p>
+                <p className="text-white font-medium">{vehicle.make} {vehicle.model} ({vehicle.year})</p>
+                <p className="text-[#99a1af] text-sm mt-1">{vehicle.color} • {vehicle.plateNumber}</p>
+              </div>
+            )}
           </Card>
         )}
 

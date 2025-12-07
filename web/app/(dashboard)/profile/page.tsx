@@ -21,7 +21,7 @@ import {
 
 interface User {
   userId: number;
-  name: string;
+  fullName: string;
   email: string;
   phoneNumber: string;
   role: string;
@@ -58,6 +58,7 @@ type ActiveSection = 'overview' | 'edit' | 'vehicles' | 'history' | 'settings';
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [isDriver, setIsDriver] = useState(false);
   const [activeSection, setActiveSection] = useState<ActiveSection>('overview');
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -91,7 +92,7 @@ export default function ProfilePage() {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
       setEditForm({
-        name: parsedUser.name,
+        name: parsedUser.fullName || parsedUser.name || '',
         email: parsedUser.email,
         phoneNumber: parsedUser.phoneNumber,
         currentPassword: '',
@@ -100,10 +101,20 @@ export default function ProfilePage() {
       });
       
       // Fetch user's data
+      checkDriverStatus(parsedUser.userId);
       fetchVehicles(parsedUser.userId);
       fetchBookings(parsedUser.userId);
     }
   }, []);
+
+  const checkDriverStatus = async (userId: number) => {
+    try {
+      const response = await apiClient.get(`/drivers/user/${userId}/status`);
+      setIsDriver(response.data.isDriver && response.data.isVerified);
+    } catch {
+      setIsDriver(false);
+    }
+  };
 
   const fetchVehicles = async (userId: number) => {
     try {
@@ -130,7 +141,7 @@ export default function ProfilePage() {
 
     try {
       const updateData: Record<string, string> = {
-        name: editForm.name,
+        fullName: editForm.name,
         email: editForm.email,
         phoneNumber: editForm.phoneNumber,
       };
@@ -146,7 +157,7 @@ export default function ProfilePage() {
 
       await apiClient.put(`/users/${user?.userId}`, updateData);
       
-      const updatedUser = { ...user, ...updateData };
+      const updatedUser = { ...user, fullName: editForm.name, email: editForm.email, phoneNumber: editForm.phoneNumber };
       setUser(updatedUser as User);
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
@@ -245,11 +256,11 @@ export default function ProfilePage() {
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 bg-gradient-to-b from-[#dc143c] to-[#8b0000] rounded-full flex items-center justify-center">
                   <span className="text-3xl font-bold text-white">
-                    {user.name.charAt(0)}
+                    {user.fullName?.charAt(0) || user.email.charAt(0).toUpperCase()}
                   </span>
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-xl font-medium text-white">{user.name}</h2>
+                  <h2 className="text-xl font-medium text-white">{user.fullName || 'User'}</h2>
                   <p className="text-[#99a1af]">{user.email}</p>
                   <div className="flex items-center gap-2 mt-2">
                     <span className="px-3 py-1 bg-[#dc143c]/20 border border-[#dc143c] text-[#dc143c] rounded-full text-xs">
@@ -298,16 +309,18 @@ export default function ProfilePage() {
                 </div>
               </Card>
 
-              <Card 
-                variant="glass" 
-                className="cursor-pointer hover:bg-white/10"
-                onClick={() => setActiveSection('vehicles')}
-              >
-                <div className="flex items-center gap-3">
-                  <Car className="w-6 h-6 text-[#dc143c]" />
-                  <span className="text-white">My Vehicles</span>
-                </div>
-              </Card>
+              {isDriver && (
+                <Card 
+                  variant="glass" 
+                  className="cursor-pointer hover:bg-white/10"
+                  onClick={() => setActiveSection('vehicles')}
+                >
+                  <div className="flex items-center gap-3">
+                    <Car className="w-6 h-6 text-[#dc143c]" />
+                    <span className="text-white">My Vehicles</span>
+                  </div>
+                </Card>
+              )}
 
               <Card 
                 variant="glass" 

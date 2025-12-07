@@ -28,15 +28,15 @@ export class RideController {
   @Public()
   @Get('search')
   searchRides(
-    @Query('pickupLocation') pickupLocation?: string,
-    @Query('dropoffLocation') dropoffLocation?: string,
+    @Query('origin') origin?: string,
+    @Query('destination') destination?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
   ) {
     // If no search params, return all available rides
     const start = startDate ? new Date(startDate) : undefined;
     const end = endDate ? new Date(endDate) : undefined;
-    return this.rideService.getAvailableRides(pickupLocation, dropoffLocation, start, end);
+    return this.rideService.getAvailableRides(origin, destination, start, end);
   }
 
   @Public()

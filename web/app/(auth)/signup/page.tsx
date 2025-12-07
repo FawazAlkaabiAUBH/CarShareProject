@@ -12,7 +12,7 @@ export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    name: '',
+    fullName: '',
     email: '',
     phoneNumber: '',
     password: '',
@@ -30,7 +30,7 @@ export default function SignupPage() {
   }, [router]);
 
   const handleNext = () => {
-    if (step === 1 && formData.email && formData.name && formData.phoneNumber) {
+    if (step === 1 && formData.email && formData.fullName && formData.phoneNumber) {
       // Validate phone number
       const phoneRegex = /^\+?\d{1,4}[-.\s]?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}$/;
       if (!phoneRegex.test(formData.phoneNumber)) {
@@ -50,7 +50,7 @@ export default function SignupPage() {
 
     try {
       const response = await apiClient.post('/auth/register', {
-        name: formData.name,
+        fullName: formData.fullName,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         password: formData.password,
@@ -111,8 +111,8 @@ export default function SignupPage() {
                 type="text"
                 label="Full Name"
                 placeholder="Ahmed Ali"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.fullName}
+                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                 required
                 icon={<User className="w-5 h-5" />}
               />
