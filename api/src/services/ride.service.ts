@@ -79,6 +79,8 @@ export class RideService {
       availableSeats: createRideDto.totalSeats,
       safetyCode,
       rideStatus: 'AVAILABLE',
+      isRecurring: createRideDto.isRecurring || false,
+      recurringSchedule: createRideDto.recurringSchedule,
     });
 
     // Increment driver's total rides
@@ -217,6 +219,24 @@ export class RideService {
     ride.arrivalTime = new Date();
     ride.rideStatus = 'COMPLETED';
     return this.rideRepository.save(ride);
+  }
+
+  verifySafetyCode(rideId: number, safetyCode: string, userId: number) {
+    const ride = this.rideRepository.findById(rideId);
+    if (!ride) {
+      throw new NotFoundException(`Ride with ID ${rideId} not found`);
+    }
+
+    // Check if the provided code matches
+    if (ride.safetyCode !== safetyCode) {
+      throw new BadRequestException('Invalid safety code');
+    }
+
+    return {
+      verified: true,
+      message: 'Safety code verified successfully',
+      rideId: ride.rideId,
+    };
   }
 
   getAvailableRides(origin?: string, destination?: string, startDate?: Date, endDate?: Date): Ride[] {

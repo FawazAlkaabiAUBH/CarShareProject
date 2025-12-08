@@ -42,13 +42,18 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     this.db.exec(`
       CREATE TABLE users (
         userId INTEGER PRIMARY KEY AUTOINCREMENT,
-        fullName TEXT NOT NULL,
+        name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         phoneNumber TEXT NOT NULL,
+        aubhId TEXT,
+        gender TEXT CHECK(gender IN ('MALE', 'FEMALE')),
         benefitPayPhone TEXT,
         role TEXT NOT NULL DEFAULT 'USER' CHECK(role IN ('USER', 'ADMIN')),
         accountStatus TEXT NOT NULL CHECK(accountStatus IN ('ACTIVE', 'INACTIVE', 'SUSPENDED')),
+        verificationCode TEXT,
+        verificationCodeExpiry TEXT,
+        isVerified INTEGER DEFAULT 0,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         lastLogin TEXT
@@ -82,7 +87,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         model TEXT NOT NULL,
         year INTEGER NOT NULL,
         color TEXT NOT NULL,
-        plateNumber TEXT NOT NULL UNIQUE,
+        licensePlate TEXT NOT NULL UNIQUE,
         vehicleDocument TEXT,
         isActive INTEGER DEFAULT 1,
         createdAt TEXT NOT NULL,
@@ -120,7 +125,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         estimatedDuration INTEGER,
         departureTime TEXT NOT NULL,
         arrivalTime TEXT,
-        rideStatus TEXT NOT NULL CHECK(rideStatus IN ('AVAILABLE', 'BOOKED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+        rideStatus TEXT NOT NULL CHECK(rideStatus IN ('OPEN', 'AVAILABLE', 'BOOKED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
         baseFare REAL NOT NULL,
         distanceFare REAL NOT NULL,
         serviceFee REAL NOT NULL,
@@ -130,6 +135,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         availableSeats INTEGER NOT NULL,
         totalSeats INTEGER NOT NULL,
         safetyCode TEXT,
+        isRecurring INTEGER DEFAULT 0,
+        recurringSchedule TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (userId) REFERENCES drivers(userId) ON DELETE CASCADE,
@@ -167,17 +174,17 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       CREATE TABLE ratings (
         ratingId INTEGER PRIMARY KEY AUTOINCREMENT,
         rideId INTEGER NOT NULL,
-        raterUserId INTEGER NOT NULL,
-        ratedUserId INTEGER NOT NULL,
+        raterId INTEGER NOT NULL,
+        rateeId INTEGER NOT NULL,
         score INTEGER NOT NULL CHECK(score >= 1 AND score <= 5),
         comment TEXT,
         isFlagged INTEGER DEFAULT 0,
         feedbackTags TEXT,
         createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL,
+        updatedAt TEXT,
         FOREIGN KEY (rideId) REFERENCES rides(rideId) ON DELETE CASCADE,
-        FOREIGN KEY (raterUserId) REFERENCES users(userId) ON DELETE CASCADE,
-        FOREIGN KEY (ratedUserId) REFERENCES users(userId) ON DELETE CASCADE
+        FOREIGN KEY (raterId) REFERENCES users(userId) ON DELETE CASCADE,
+        FOREIGN KEY (rateeId) REFERENCES users(userId) ON DELETE CASCADE
       )
     `);
 
@@ -186,11 +193,11 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       CREATE TABLE notifications (
         notificationId INTEGER PRIMARY KEY AUTOINCREMENT,
         userId INTEGER NOT NULL,
-        type TEXT NOT NULL CHECK(type IN ('BOOKING_REQUEST', 'BOOKING_CONFIRMED', 'BOOKING_CANCELLED', 'RIDE_STARTED', 'RIDE_COMPLETED', 'DRIVER_VERIFIED', 'SYSTEM')),
+        type TEXT NOT NULL CHECK(type IN ('MATCH', 'PAYMENT', 'MESSAGE', 'RIDE_COMPLETED', 'RIDE_CANCELLED', 'SYSTEM')),
         title TEXT NOT NULL,
-        message TEXT NOT NULL,
-        relatedEntityType TEXT,
-        relatedEntityId INTEGER,
+        body TEXT NOT NULL,
+        relatedRideId INTEGER,
+        relatedUserId INTEGER,
         isRead INTEGER DEFAULT 0,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
@@ -255,7 +262,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     // Seed users (role is now USER or ADMIN, not DRIVER/RIDER)
     const insertUser = this.db.prepare(`
-      INSERT INTO users (fullName, email, password, phoneNumber, benefitPayPhone, role, accountStatus, createdAt, updatedAt, lastLogin)
+      INSERT INTO users (name, email, password, phoneNumber, benefitPayPhone, role, accountStatus, createdAt, updatedAt, lastLogin)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
@@ -327,7 +334,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     // Seed vehicles
     const insertVehicle = this.db.prepare(`
-      INSERT INTO vehicles (userId, make, model, year, color, plateNumber, isActive, createdAt, updatedAt)
+      INSERT INTO vehicles (userId, make, model, year, color, licensePlate, isActive, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
@@ -497,24 +504,24 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     // Seed notifications
     const insertNotification = this.db.prepare(`
-      INSERT INTO notifications (userId, type, title, message, relatedEntityType, relatedEntityId, isRead, createdAt)
+      INSERT INTO notifications (userId, type, title, body, relatedRideId, relatedUserId, isRead, createdAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     // Notification for driver (Ahmed) about booking request
     insertNotification.run(
-      1, 'BOOKING_REQUEST',
+      1, 'MATCH',
       'New Booking Request',
       'Fatima Hassan has booked 1 seat for your ride from Seef District to AUBH Campus',
-      'booking', 1, 1, now
+      1, 2, 1, now
     );
 
     // Notification for rider (Fatima) about booking confirmation
     insertNotification.run(
-      2, 'BOOKING_CONFIRMED',
+      2, 'PAYMENT',
       'Booking Confirmed',
       'Your booking for the ride from Seef District to AUBH Campus has been confirmed',
-      'booking', 1, 0, now
+      1, null, 0, now
     );
 
     // Welcome notification for all users

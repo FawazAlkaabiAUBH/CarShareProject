@@ -19,6 +19,7 @@ import { DriverController } from './controllers/driver.controller';
 import { RiderController } from './controllers/rider.controller';
 import { VehicleController } from './controllers/vehicle.controller';
 import { NotificationController } from './controllers/notification.controller';
+import { MessageController } from './controllers/message.controller';
 
 // Services
 import { UserService } from './services/user.service';
@@ -29,6 +30,7 @@ import { DriverService } from './services/driver.service';
 import { RiderService } from './services/rider.service';
 import { VehicleService } from './services/vehicle.service';
 import { NotificationService } from './services/notification.service';
+import { MessageService } from './services/message.service';
 
 // Repositories
 import { UserRepository } from './repositories/user.repository';
@@ -40,6 +42,7 @@ import { RiderRepository } from './repositories/rider.repository';
 import { VehicleRepository } from './repositories/vehicle.repository';
 import { NotificationRepository } from './repositories/notification.repository';
 import { SystemSettingsRepository } from './repositories/system-settings.repository';
+import { MessageRepository } from './repositories/message.repository';
 
 @Module({
   imports: [AuthModule],
@@ -53,6 +56,7 @@ import { SystemSettingsRepository } from './repositories/system-settings.reposit
     RiderController,
     VehicleController,
     NotificationController,
+    MessageController,
   ],
   providers: [
     AppService,
@@ -72,6 +76,7 @@ import { SystemSettingsRepository } from './repositories/system-settings.reposit
     RiderService,
     VehicleService,
     NotificationService,
+    MessageService,
     // Repositories
     UserRepository,
     RideRepository,
@@ -82,6 +87,7 @@ import { SystemSettingsRepository } from './repositories/system-settings.reposit
     VehicleRepository,
     NotificationRepository,
     SystemSettingsRepository,
+    MessageRepository,
   ],
 })
 export class AppModule {}

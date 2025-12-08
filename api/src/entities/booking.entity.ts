@@ -7,6 +7,7 @@ export class Booking {
   benefitPayPhone?: string;
   farePerSeat: number;
   totalAmount: number;
+  totalFare: number; // Same as totalAmount, added for frontend compatibility
   serviceFee: number;
   driverEarnings: number;
   bookingStatus: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';

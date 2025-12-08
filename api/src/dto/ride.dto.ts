@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, Min, Max } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, Min, Max, IsBoolean, Matches } from 'class-validator';
 
 export class CreateRideDto {
   @IsNotEmpty()
@@ -50,6 +50,14 @@ export class CreateRideDto {
   @IsNumber()
   @Min(0)
   estimatedDuration?: number; // Optional, in minutes
+
+  @IsOptional()
+  @IsBoolean()
+  isRecurring?: boolean; // Whether this is a recurring/scheduled ride
+
+  @IsOptional()
+  @IsString()
+  recurringSchedule?: string; // JSON string with recurring details
 }
 
 export class UpdateRideDto {
@@ -111,4 +119,13 @@ export class UpdateRideDto {
     | 'IN_PROGRESS'
     | 'COMPLETED'
     | 'CANCELLED';
+}
+
+export class VerifySafetyCodeDto {
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^\d{4}$/, {
+    message: 'Safety code must be 4 digits',
+  })
+  safetyCode: string;
 }

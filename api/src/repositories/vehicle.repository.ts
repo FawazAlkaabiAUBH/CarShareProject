@@ -51,7 +51,7 @@ export class VehicleRepository {
         .getDatabase()
         .prepare(
           `UPDATE vehicles 
-           SET make = ?, model = ?, year = ?, color = ?, plateNumber = ?, 
+           SET make = ?, model = ?, year = ?, color = ?, licensePlate = ?, 
                vehicleDocument = ?, isActive = ?, updatedAt = ?
            WHERE vehicleId = ?`,
         )
@@ -60,7 +60,7 @@ export class VehicleRepository {
           vehicle.model,
           vehicle.year,
           vehicle.color,
-          vehicle.plateNumber,
+          vehicle.licensePlate,
           vehicle.vehicleDocument || null,
           vehicle.isActive ? 1 : 0,
           now,
@@ -73,7 +73,7 @@ export class VehicleRepository {
       const result = this.db
         .getDatabase()
         .prepare(
-          `INSERT INTO vehicles (userId, make, model, year, color, plateNumber, vehicleDocument, isActive, createdAt, updatedAt)
+          `INSERT INTO vehicles (userId, make, model, year, color, licensePlate, vehicleDocument, isActive, createdAt, updatedAt)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
@@ -82,7 +82,7 @@ export class VehicleRepository {
           vehicle.model,
           vehicle.year,
           vehicle.color,
-          vehicle.plateNumber,
+          vehicle.licensePlate,
           vehicle.vehicleDocument || null,
           vehicle.isActive !== undefined ? (vehicle.isActive ? 1 : 0) : 1,
           now,
@@ -116,7 +116,7 @@ export class VehicleRepository {
       model: row.model,
       year: row.year,
       color: row.color,
-      plateNumber: row.plateNumber,
+      licensePlate: row.licensePlate,
       vehicleDocument: row.vehicleDocument,
       isActive: row.isActive === 1,
       createdAt: new Date(row.createdAt),

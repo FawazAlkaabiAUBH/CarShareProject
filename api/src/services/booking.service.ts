@@ -80,7 +80,7 @@ export class BookingService {
 
     // Send notification to driver
     const riderUser = this.userRepository.findById(userId);
-    const riderName = riderUser ? riderUser.fullName : 'A rider';
+    const riderName = riderUser ? riderUser.name : 'A rider';
     this.notificationService.notifyBookingRequest(
       ride.userId,
       booking.bookingId,
@@ -153,7 +153,7 @@ export class BookingService {
       const ride = this.rideRepository.findById(booking.rideId);
       if (ride) {
         const driverUser = this.userRepository.findById(ride.userId);
-        const driverName = driverUser ? driverUser.fullName : 'The driver';
+        const driverName = driverUser ? driverUser.name : 'The driver';
         this.notificationService.notifyBookingConfirmed(
           booking.userId,
           bookingId,

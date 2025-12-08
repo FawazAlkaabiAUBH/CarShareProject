@@ -11,7 +11,7 @@ import {
   Request,
 } from '@nestjs/common';
 import { RideService } from '../services/ride.service';
-import { CreateRideDto, UpdateRideDto } from '../dto/ride.dto';
+import { CreateRideDto, UpdateRideDto, VerifySafetyCodeDto } from '../dto/ride.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Public } from '../auth/public.decorator';
 
@@ -85,6 +85,15 @@ export class RideController {
   @Put(':id/complete')
   completeRide(@Param('id', ParseIntPipe) id: number, @Request() req) {
     return this.rideService.completeRide(id, req.user.userId);
+  }
+
+  @Post(':id/verify-safety-code')
+  verifySafetyCode(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: VerifySafetyCodeDto,
+    @Request() req,
+  ) {
+    return this.rideService.verifySafetyCode(id, dto.safetyCode, req.user.userId);
   }
 
   @Get(':id/seats')

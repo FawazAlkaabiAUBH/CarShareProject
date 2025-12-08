@@ -23,9 +23,9 @@ export class UserService {
     return user;
   }
 
-  updateName(userId: number, fullName: string): User {
+  updateName(userId: number, name: string): User {
     const user = this.getUserInfo(userId);
-    return this.userRepository.save({ ...user, fullName });
+    return this.userRepository.save({ ...user, name });
   }
 
   updateEmail(userId: number, email: string): User {

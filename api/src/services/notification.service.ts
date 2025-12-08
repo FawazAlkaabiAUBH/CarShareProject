@@ -17,9 +17,9 @@ export class NotificationService {
     userId: number;
     type: Notification['type'];
     title: string;
-    message: string;
-    relatedEntityType?: string;
-    relatedEntityId?: number;
+    body: string;
+    relatedRideId?: number;
+    relatedUserId?: number;
   }): Promise<Notification> {
     const notification = this.notificationRepository.save({
       ...data,
@@ -83,11 +83,10 @@ export class NotificationService {
   async notifyBookingRequest(driverId: number, bookingId: number, riderName: string): Promise<void> {
     await this.createNotification({
       userId: driverId,
-      type: 'BOOKING_REQUEST',
+      type: 'MATCH',
       title: 'New Booking Request',
-      message: `${riderName} has requested to book your ride`,
-      relatedEntityType: 'booking',
-      relatedEntityId: bookingId,
+      body: `${riderName} has requested to book your ride`,
+      relatedRideId: bookingId,
     });
   }
 
@@ -97,11 +96,10 @@ export class NotificationService {
   async notifyBookingConfirmed(riderId: number, bookingId: number, driverName: string): Promise<void> {
     await this.createNotification({
       userId: riderId,
-      type: 'BOOKING_CONFIRMED',
+      type: 'PAYMENT',
       title: 'Booking Confirmed',
-      message: `${driverName} has confirmed your booking`,
-      relatedEntityType: 'booking',
-      relatedEntityId: bookingId,
+      body: `${driverName} has confirmed your booking`,
+      relatedRideId: bookingId,
     });
   }
 
@@ -115,11 +113,10 @@ export class NotificationService {
   ): Promise<void> {
     await this.createNotification({
       userId,
-      type: 'BOOKING_CANCELLED',
+      type: 'RIDE_CANCELLED',
       title: 'Booking Cancelled',
-      message: `Your booking has been cancelled by ${cancelledBy}`,
-      relatedEntityType: 'booking',
-      relatedEntityId: bookingId,
+      body: `Your booking has been cancelled by ${cancelledBy}`,
+      relatedRideId: bookingId,
     });
   }
 
@@ -134,11 +131,10 @@ export class NotificationService {
     const promises = userIds.map((userId) =>
       this.createNotification({
         userId,
-        type: 'RIDE_STARTED',
+        type: 'MESSAGE',
         title: 'Ride Started',
-        message: `Your ride has started. Have a safe journey!${codeMessage}`,
-        relatedEntityType: 'ride',
-        relatedEntityId: rideId,
+        body: `Your ride has started. Have a safe journey!${codeMessage}`,
+        relatedRideId: rideId,
       })
     );
     await Promise.all(promises);
@@ -153,9 +149,8 @@ export class NotificationService {
         userId,
         type: 'RIDE_COMPLETED',
         title: 'Ride Completed',
-        message: 'Your ride has been completed. Please rate your experience.',
-        relatedEntityType: 'ride',
-        relatedEntityId: rideId,
+        body: 'Your ride has been completed. Please rate your experience.',
+        relatedRideId: rideId,
       })
     );
     await Promise.all(promises);
@@ -167,21 +162,21 @@ export class NotificationService {
   async notifyDriverVerified(userId: number): Promise<void> {
     await this.createNotification({
       userId,
-      type: 'DRIVER_VERIFIED',
+      type: 'SYSTEM',
       title: 'Driver Verification Complete',
-      message: 'Congratulations! You can now start offering rides.',
+      body: 'Congratulations! You can now start offering rides.',
     });
   }
 
   /**
    * Send system notification
    */
-  async sendSystemNotification(userId: number, title: string, message: string): Promise<void> {
+  async sendSystemNotification(userId: number, title: string, body: string): Promise<void> {
     await this.createNotification({
       userId,
       type: 'SYSTEM',
       title,
-      message,
+      body,
     });
   }
 
