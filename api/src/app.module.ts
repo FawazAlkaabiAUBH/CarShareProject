@@ -18,6 +18,7 @@ import { RatingController } from './controllers/rating.controller';
 import { DriverController } from './controllers/driver.controller';
 import { RiderController } from './controllers/rider.controller';
 import { VehicleController } from './controllers/vehicle.controller';
+import { NotificationController } from './controllers/notification.controller';
 
 // Services
 import { UserService } from './services/user.service';
@@ -27,6 +28,7 @@ import { RatingService } from './services/rating.service';
 import { DriverService } from './services/driver.service';
 import { RiderService } from './services/rider.service';
 import { VehicleService } from './services/vehicle.service';
+import { NotificationService } from './services/notification.service';
 
 // Repositories
 import { UserRepository } from './repositories/user.repository';
@@ -36,6 +38,8 @@ import { RatingRepository } from './repositories/rating.repository';
 import { DriverRepository } from './repositories/driver.repository';
 import { RiderRepository } from './repositories/rider.repository';
 import { VehicleRepository } from './repositories/vehicle.repository';
+import { NotificationRepository } from './repositories/notification.repository';
+import { SystemSettingsRepository } from './repositories/system-settings.repository';
 
 @Module({
   imports: [AuthModule],
@@ -48,6 +52,7 @@ import { VehicleRepository } from './repositories/vehicle.repository';
     DriverController,
     RiderController,
     VehicleController,
+    NotificationController,
   ],
   providers: [
     AppService,
@@ -66,6 +71,7 @@ import { VehicleRepository } from './repositories/vehicle.repository';
     DriverService,
     RiderService,
     VehicleService,
+    NotificationService,
     // Repositories
     UserRepository,
     RideRepository,
@@ -74,6 +80,8 @@ import { VehicleRepository } from './repositories/vehicle.repository';
     DriverRepository,
     RiderRepository,
     VehicleRepository,
+    NotificationRepository,
+    SystemSettingsRepository,
   ],
 })
 export class AppModule {}

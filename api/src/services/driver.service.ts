@@ -4,6 +4,7 @@ import { RegisterDriverDto, UpdateDriverDto, VerifyDriverDto } from '../dto/driv
 import { Driver } from '../entities/driver.entity';
 import { UserRepository } from '../repositories/user.repository';
 import { VehicleRepository } from '../repositories/vehicle.repository';
+import { NotificationService } from './notification.service';
 
 @Injectable()
 export class DriverService {
@@ -11,6 +12,7 @@ export class DriverService {
     private readonly driverRepository: DriverRepository,
     private readonly userRepository: UserRepository,
     private readonly vehicleRepository: VehicleRepository,
+    private readonly notificationService: NotificationService,
   ) {}
 
   registerDriver(registerDriverDto: RegisterDriverDto, userId: number): Driver {
@@ -116,6 +118,10 @@ export class DriverService {
         isActive: true,
       });
     });
+
+    // Send notification to driver
+    this.notificationService.notifyDriverVerified(driverUserId)
+      .catch(err => console.error('Failed to send notification:', err));
 
     return {
       driver: updatedDriver,

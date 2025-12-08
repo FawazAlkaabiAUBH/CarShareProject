@@ -22,7 +22,8 @@ interface Booking {
   rideId: number;
   userId: number;
   seatsBooked: number;
-  totalFare: number;
+  totalFare?: number;
+  totalAmount?: number;
   bookingStatus: string;
   createdAt: string;
 }
@@ -316,7 +317,7 @@ export default function BookingDetailsPage() {
             </div>
             <div className="border-t border-white/10 pt-3 flex items-center justify-between">
               <span className="text-white font-semibold text-lg">Total Paid</span>
-              <span className="text-[#dc143c] font-bold text-2xl">{booking.totalFare.toFixed(2)} BD</span>
+              <span className="text-[#dc143c] font-bold text-2xl">{(booking.totalAmount || booking.totalFare || 0).toFixed(2)} BD</span>
             </div>
           </div>
         </Card>

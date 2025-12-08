@@ -20,6 +20,13 @@ interface Ride {
   rideStatus: string;
   driverName?: string;
   driverPhone?: string;
+  originLat?: number;
+  originLng?: number;
+  destinationLat?: number;
+  destinationLng?: number;
+  distance?: number; // Total ride distance
+  distanceToPickup?: number; // Distance from user to pickup
+  distanceToDropoff?: number; // Distance from destination to dropoff
 }
 
 export default function FindRidePage() {
@@ -31,13 +38,99 @@ export default function FindRidePage() {
     dropoff: '',
     date: '',
   });
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [searchMode, setSearchMode] = useState<'text' | 'nearby'>('text');
+  const [maxDistance, setMaxDistance] = useState(10); // km
+  const [locationError, setLocationError] = useState<string>('');
 
   useEffect(() => {
     fetchAvailableRides();
+    getUserLocation();
   }, []);
+
+  const getUserLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error('Error getting location:', error);
+          // Location access denied or unavailable
+        },
+        {
+          enableHighAccuracy: false,
+          timeout: 10000,
+          maximumAge: 300000 // Cache for 5 minutes
+        }
+      );
+    }
+  };
+
+  const fetchNearbyRides = async () => {
+    let locationToUse = userLocation;
+    setLocationError('');
+
+    if (!locationToUse) {
+      // Try to get location again when user clicks
+      if (navigator.geolocation) {
+        try {
+          setLoading(true);
+          const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+              enableHighAccuracy: false,
+              timeout: 10000,
+              maximumAge: 0
+            });
+          });
+          locationToUse = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setUserLocation(locationToUse);
+          setLoading(false);
+        } catch (error: any) {
+          setLoading(false);
+          let errorMessage = 'Unable to get your location. ';
+          if (error.code === 1) {
+            errorMessage += 'Please enable location permissions in your browser settings.';
+          } else if (error.code === 2) {
+            errorMessage += 'Location information is unavailable.';
+          } else if (error.code === 3) {
+            errorMessage += 'Location request timed out.';
+          } else {
+            errorMessage += 'Please try again.';
+          }
+          setLocationError(errorMessage);
+          return;
+        }
+      } else {
+        setLocationError('Geolocation is not supported by your browser.');
+        return;
+      }
+    }
+
+    setLoading(true);
+    setSearchMode('nearby');
+    try {
+      const response = await apiClient.get(
+        `/rides/nearby/location?lat=${locationToUse.lat}&lng=${locationToUse.lng}&radius=${maxDistance}`
+      );
+      setRides(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('Failed to fetch nearby rides:', error);
+      setRides([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchAvailableRides = async () => {
     setLoading(true);
+    setSearchMode('text');
     try {
       // Use search endpoint with optional parameters
       const params = new URLSearchParams();
@@ -76,6 +169,25 @@ export default function FindRidePage() {
       </div>
 
       <div className="max-w-md mx-auto p-6 space-y-6">
+        {/* Location Error Message */}
+        {locationError && (
+          <Card variant="glass" className="border-2 border-red-500/50 bg-red-500/10">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div className="flex-1">
+                <p className="text-red-500 font-medium mb-1">Location Error</p>
+                <p className="text-red-400 text-sm">{locationError}</p>
+              </div>
+              <button
+                onClick={() => setLocationError('')}
+                className="text-red-400 hover:text-red-300 text-xl leading-none"
+              >
+                ×
+              </button>
+            </div>
+          </Card>
+        )}
+
         {/* Search Section */}
         <Card variant="default">
           <div className="space-y-4">
@@ -106,8 +218,16 @@ export default function FindRidePage() {
               size="md"
               className="w-full"
               onClick={fetchAvailableRides}
+              disabled={loading}
             >
-              Search Rides
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Searching...
+                </span>
+              ) : (
+                'Search Rides'
+              )}
             </Button>
           </div>
         </Card>
@@ -177,6 +297,24 @@ export default function FindRidePage() {
                         </span>
                         <span>{ride.availableSeats} seats</span>
                       </div>
+
+                      {/* Distance Info */}
+                      {(ride.distance || ride.distanceToPickup) && (
+                        <div className="flex items-center gap-3 mt-2 text-xs text-[#99a1af]">
+                          {ride.distanceToPickup !== undefined && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {ride.distanceToPickup.toFixed(1)}km to pickup
+                            </span>
+                          )}
+                          {ride.distance !== undefined && (
+                            <span className="flex items-center gap-1">
+                              <Navigation className="w-3 h-3" />
+                              {ride.distance.toFixed(1)}km trip
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
 
                     {/* Price */}
@@ -194,19 +332,63 @@ export default function FindRidePage() {
         </div>
 
         {/* Quick Filters */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          <button className="px-4 py-2 bg-[#dc143c]/20 border border-[#dc143c] text-[#dc143c] rounded-full whitespace-nowrap text-sm">
-            All Rides
-          </button>
-          <button className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-full whitespace-nowrap text-sm hover:bg-white/10">
-            Today
-          </button>
-          <button className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-full whitespace-nowrap text-sm hover:bg-white/10">
-            Tomorrow
-          </button>
-          <button className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-full whitespace-nowrap text-sm hover:bg-white/10">
-            This Week
-          </button>
+        <div className="space-y-3">
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            <button 
+              onClick={() => {
+                setSearchMode('text');
+                fetchAvailableRides();
+              }}
+              className={`px-4 py-2 border rounded-full whitespace-nowrap text-sm ${
+                searchMode === 'text' 
+                  ? 'bg-[#dc143c]/20 border-[#dc143c] text-[#dc143c]'
+                  : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+              }`}
+            >
+              All Rides
+            </button>
+            <button 
+              onClick={fetchNearbyRides}
+              disabled={!userLocation}
+              className={`px-4 py-2 border rounded-full whitespace-nowrap text-sm flex items-center gap-2 ${
+                searchMode === 'nearby'
+                  ? 'bg-[#dc143c]/20 border-[#dc143c] text-[#dc143c]'
+                  : 'bg-white/5 border-white/10 text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed'
+              }`}
+            >
+              <Navigation className="w-4 h-4" />
+              Rides Near Me
+            </button>
+            <button className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-full whitespace-nowrap text-sm hover:bg-white/10">
+              Today
+            </button>
+            <button className="px-4 py-2 bg-white/5 border border-white/10 text-white rounded-full whitespace-nowrap text-sm hover:bg-white/10">
+              Tomorrow
+            </button>
+          </div>
+
+          {/* Distance slider for nearby search */}
+          {searchMode === 'nearby' && (
+            <Card variant="glass" className="p-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm text-white">Search Radius</label>
+                <span className="text-sm font-medium text-[#dc143c]">{maxDistance}km</span>
+              </div>
+              <input
+                type="range"
+                min="1"
+                max="50"
+                value={maxDistance}
+                onChange={(e) => setMaxDistance(parseInt(e.target.value))}
+                onMouseUp={fetchNearbyRides}
+                onTouchEnd={fetchNearbyRides}
+                className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer slider"
+                style={{
+                  background: `linear-gradient(to right, #dc143c 0%, #dc143c ${(maxDistance / 50) * 100}%, rgba(255,255,255,0.1) ${(maxDistance / 50) * 100}%, rgba(255,255,255,0.1) 100%)`
+                }}
+              />
+            </Card>
+          )}
         </div>
       </div>
     </div>

@@ -4,6 +4,7 @@ export class User {
   email: string;
   password: string; // Hashed password
   phoneNumber: string;
+  benefitPayPhone?: string; // BenefitPay phone number for payments
   role: 'USER' | 'ADMIN'; // Permission level
   accountStatus: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   createdAt: Date;

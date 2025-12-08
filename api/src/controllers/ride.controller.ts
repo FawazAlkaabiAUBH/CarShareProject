@@ -92,4 +92,51 @@ export class RideController {
     const availableSeats = this.rideService.checkSeatAvailability(id);
     return { rideId: id, availableSeats };
   }
+
+  @Public()
+  @Get('nearby/search')
+  searchNearbyRides(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('destLat') destLat?: string,
+    @Query('destLng') destLng?: string,
+    @Query('maxPickupDistance') maxPickupDistance?: string,
+    @Query('maxDropoffDistance') maxDropoffDistance?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    const userLat = parseFloat(lat);
+    const userLng = parseFloat(lng);
+    const destinationLat = destLat ? parseFloat(destLat) : undefined;
+    const destinationLng = destLng ? parseFloat(destLng) : undefined;
+    const maxPickup = maxPickupDistance ? parseFloat(maxPickupDistance) : 5;
+    const maxDropoff = maxDropoffDistance ? parseFloat(maxDropoffDistance) : 5;
+    const start = startDate ? new Date(startDate) : undefined;
+    const end = endDate ? new Date(endDate) : undefined;
+
+    return this.rideService.searchNearbyRides(
+      userLat,
+      userLng,
+      destinationLat,
+      destinationLng,
+      maxPickup,
+      maxDropoff,
+      start,
+      end,
+    );
+  }
+
+  @Public()
+  @Get('nearby/location')
+  getNearbyRides(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('radius') radius?: string,
+  ) {
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    const searchRadius = radius ? parseFloat(radius) : 10;
+
+    return this.rideService.getRidesNearLocation(latitude, longitude, searchRadius);
+  }
 }

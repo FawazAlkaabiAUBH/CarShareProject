@@ -48,15 +48,24 @@ export class BookingRepository {
     if (!booking.bookingId) {
       // Insert new booking
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO bookings (rideId, userId, seatsBooked, totalFare, bookingStatus, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO bookings (
+          rideId, userId, seatsBooked, paymentMethod, benefitPayPhone,
+          farePerSeat, totalAmount, serviceFee, driverEarnings,
+          bookingStatus, createdAt, updatedAt
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
         booking.rideId,
         booking.userId,
         booking.seatsBooked!,
-        booking.totalFare!,
+        booking.paymentMethod!,
+        booking.benefitPayPhone || null,
+        booking.farePerSeat!,
+        booking.totalAmount!,
+        booking.serviceFee!,
+        booking.driverEarnings!,
         booking.bookingStatus || 'PENDING',
         now,
         now,
@@ -67,7 +76,9 @@ export class BookingRepository {
       // Update existing booking
       const stmt = this.db.getDatabase().prepare(`
         UPDATE bookings
-        SET rideId = ?, userId = ?, seatsBooked = ?, totalFare = ?, bookingStatus = ?, updatedAt = ?
+        SET rideId = ?, userId = ?, seatsBooked = ?, paymentMethod = ?, benefitPayPhone = ?,
+            farePerSeat = ?, totalAmount = ?, serviceFee = ?, driverEarnings = ?,
+            bookingStatus = ?, updatedAt = ?
         WHERE bookingId = ?
       `);
 
@@ -75,7 +86,12 @@ export class BookingRepository {
         booking.rideId,
         booking.userId,
         booking.seatsBooked!,
-        booking.totalFare!,
+        booking.paymentMethod!,
+        booking.benefitPayPhone || null,
+        booking.farePerSeat!,
+        booking.totalAmount!,
+        booking.serviceFee!,
+        booking.driverEarnings!,
         booking.bookingStatus,
         now,
         booking.bookingId,
@@ -129,7 +145,12 @@ export class BookingRepository {
       rideId: row.rideId,
       userId: row.userId,
       seatsBooked: row.seatsBooked,
-      totalFare: row.totalFare,
+      paymentMethod: row.paymentMethod,
+      benefitPayPhone: row.benefitPayPhone,
+      farePerSeat: row.farePerSeat,
+      totalAmount: row.totalAmount,
+      serviceFee: row.serviceFee,
+      driverEarnings: row.driverEarnings,
       bookingStatus: row.bookingStatus,
       cancellationReason: row.cancellationReason,
       cancelledBy: row.cancelledBy,

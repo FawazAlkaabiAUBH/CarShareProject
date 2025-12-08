@@ -3,7 +3,12 @@ export class Booking {
   rideId: number;
   userId: number;
   seatsBooked: number;
-  totalFare: number;
+  paymentMethod: 'CASH' | 'BENEFITPAY';
+  benefitPayPhone?: string;
+  farePerSeat: number;
+  totalAmount: number;
+  serviceFee: number;
+  driverEarnings: number;
   bookingStatus: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
   cancellationReason?: string;
   cancelledBy?: number;

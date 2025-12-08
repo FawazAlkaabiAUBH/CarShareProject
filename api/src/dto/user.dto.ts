@@ -22,6 +22,13 @@ export class CreateUserDto {
   phoneNumber: string;
 
   @IsOptional()
+  @IsString()
+  @Matches(/^\d{8}$/, {
+    message: 'BenefitPay phone must be 8 digits',
+  })
+  benefitPayPhone?: string;
+
+  @IsOptional()
   role?: 'USER' | 'ADMIN'; // Defaults to USER
 }
 
@@ -40,6 +47,13 @@ export class UpdateUserDto {
     message: 'Phone number must be valid (e.g., +973-1234-5678 or 17001234)',
   })
   phoneNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{8}$/, {
+    message: 'BenefitPay phone must be 8 digits',
+  })
+  benefitPayPhone?: string;
 
   @IsOptional()
   @IsString()

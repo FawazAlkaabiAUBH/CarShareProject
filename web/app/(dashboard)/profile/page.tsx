@@ -24,6 +24,7 @@ interface User {
   fullName: string;
   email: string;
   phoneNumber: string;
+  benefitPayPhone?: string;
   role: string;
   accountStatus: string;
 }
@@ -48,7 +49,8 @@ interface Booking {
     farePerSeat: number;
   };
   seatsBooked: number;
-  totalFare: number;
+  totalFare?: number;
+  totalAmount?: number;
   bookingStatus: string;
   createdAt: string;
 }
@@ -71,6 +73,7 @@ export default function ProfilePage() {
     name: '',
     email: '',
     phoneNumber: '',
+    benefitPayPhone: '',
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
@@ -95,6 +98,7 @@ export default function ProfilePage() {
         name: parsedUser.fullName || parsedUser.name || '',
         email: parsedUser.email,
         phoneNumber: parsedUser.phoneNumber,
+        benefitPayPhone: parsedUser.benefitPayPhone || '',
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
@@ -140,11 +144,25 @@ export default function ProfilePage() {
     setSuccess('');
 
     try {
+      // Validate BenefitPay phone if provided
+      if (editForm.benefitPayPhone && editForm.benefitPayPhone.length > 0) {
+        if (!/^\d{8}$/.test(editForm.benefitPayPhone)) {
+          setError('BenefitPay phone must be exactly 8 digits');
+          setLoading(false);
+          return;
+        }
+      }
+
       const updateData: Record<string, string> = {
         fullName: editForm.name,
         email: editForm.email,
         phoneNumber: editForm.phoneNumber,
       };
+
+      // Add BenefitPay phone if provided
+      if (editForm.benefitPayPhone) {
+        updateData.benefitPayPhone = editForm.benefitPayPhone;
+      }
 
       if (editForm.newPassword) {
         if (editForm.newPassword !== editForm.confirmPassword) {
@@ -157,7 +175,13 @@ export default function ProfilePage() {
 
       await apiClient.put(`/users/${user?.userId}`, updateData);
       
-      const updatedUser = { ...user, fullName: editForm.name, email: editForm.email, phoneNumber: editForm.phoneNumber };
+      const updatedUser = { 
+        ...user, 
+        fullName: editForm.name, 
+        email: editForm.email, 
+        phoneNumber: editForm.phoneNumber,
+        benefitPayPhone: editForm.benefitPayPhone 
+      };
       setUser(updatedUser as User);
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
@@ -383,6 +407,24 @@ export default function ProfilePage() {
                   value={editForm.phoneNumber}
                   onChange={(e) => setEditForm({ ...editForm, phoneNumber: e.target.value })}
                 />
+                <div>
+                  <Input
+                    type="tel"
+                    label="BenefitPay Phone (Optional)"
+                    value={editForm.benefitPayPhone}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, '').slice(0, 8);
+                      setEditForm({ ...editForm, benefitPayPhone: value });
+                    }}
+                    placeholder="8 digits"
+                    maxLength={8}
+                  />
+                  <p className="text-xs text-[#99a1af] mt-1">
+                    {isDriver 
+                      ? "Required if you want to receive BenefitPay payments from riders" 
+                      : "Add your BenefitPay number to pay drivers via BenefitPay"}
+                  </p>
+                </div>
               </div>
             </Card>
 
@@ -563,7 +605,7 @@ export default function ProfilePage() {
                         {booking.seatsBooked} seat{booking.seatsBooked > 1 ? 's' : ''}
                       </span>
                       <span className="text-white font-medium">
-                        BHD {booking.totalFare.toFixed(2)}
+                        BHD {(booking.totalAmount || booking.totalFare || 0).toFixed(2)}
                       </span>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, Min, Max } from 'class-validator';
 
 export class CreateRideDto {
   @IsNotEmpty()
@@ -14,6 +14,30 @@ export class CreateRideDto {
   destination: string;
 
   @IsNotEmpty()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  originLat: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  originLng: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  destinationLat: number;
+
+  @IsNotEmpty()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  destinationLng: number;
+
+  @IsNotEmpty()
   @IsString()
   departureTime: string; // ISO date string
 
@@ -22,10 +46,10 @@ export class CreateRideDto {
   @Min(1)
   totalSeats: number;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  farePerSeat: number;
+  estimatedDuration?: number; // Optional, in minutes
 }
 
 export class UpdateRideDto {
@@ -42,6 +66,30 @@ export class UpdateRideDto {
   destination?: string;
 
   @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  originLat?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  originLng?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  destinationLat?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  destinationLng?: number;
+
+  @IsOptional()
   @IsString()
   departureTime?: string;
 
@@ -53,7 +101,7 @@ export class UpdateRideDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
-  farePerSeat?: number;
+  estimatedDuration?: number;
 
   @IsOptional()
   @IsEnum(['AVAILABLE', 'BOOKED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'])

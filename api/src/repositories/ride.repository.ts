@@ -74,8 +74,15 @@ export class RideRepository {
     if (!ride.rideId) {
       // Insert new ride
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO rides (userId, vehicleId, origin, destination, departureTime, arrivalTime, rideStatus, farePerSeat, totalSeats, availableSeats, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO rides (
+          userId, vehicleId, origin, destination,
+          originLat, originLng, destinationLat, destinationLng,
+          distance, estimatedDuration, departureTime, arrivalTime,
+          rideStatus, baseFare, distanceFare, serviceFee, totalFare, driverEarnings,
+          farePerSeat, totalSeats, availableSeats, safetyCode,
+          createdAt, updatedAt
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
@@ -83,6 +90,12 @@ export class RideRepository {
         ride.vehicleId,
         ride.origin,
         ride.destination,
+        ride.originLat,
+        ride.originLng,
+        ride.destinationLat,
+        ride.destinationLng,
+        ride.distance || null,
+        ride.estimatedDuration || null,
         ride.departureTime instanceof Date
           ? ride.departureTime.toISOString()
           : ride.departureTime,
@@ -92,9 +105,15 @@ export class RideRepository {
             : ride.arrivalTime
           : null,
         ride.rideStatus || 'AVAILABLE',
+        ride.baseFare,
+        ride.distanceFare,
+        ride.serviceFee,
+        ride.totalFare,
+        ride.driverEarnings,
         ride.farePerSeat,
         ride.totalSeats,
         ride.availableSeats ?? ride.totalSeats,
+        ride.safetyCode || null,
         now,
         now,
       );
@@ -104,7 +123,11 @@ export class RideRepository {
       // Update existing ride
       const stmt = this.db.getDatabase().prepare(`
         UPDATE rides
-        SET userId = ?, vehicleId = ?, origin = ?, destination = ?, departureTime = ?, arrivalTime = ?, rideStatus = ?, farePerSeat = ?, totalSeats = ?, availableSeats = ?, updatedAt = ?
+        SET userId = ?, vehicleId = ?, origin = ?, destination = ?,
+            originLat = ?, originLng = ?, destinationLat = ?, destinationLng = ?,
+            distance = ?, estimatedDuration = ?, departureTime = ?, arrivalTime = ?,
+            rideStatus = ?, baseFare = ?, distanceFare = ?, serviceFee = ?, totalFare = ?, driverEarnings = ?,
+            farePerSeat = ?, totalSeats = ?, availableSeats = ?, safetyCode = ?, updatedAt = ?
         WHERE rideId = ?
       `);
 
@@ -113,6 +136,12 @@ export class RideRepository {
         ride.vehicleId,
         ride.origin,
         ride.destination,
+        ride.originLat,
+        ride.originLng,
+        ride.destinationLat,
+        ride.destinationLng,
+        ride.distance || null,
+        ride.estimatedDuration || null,
         ride.departureTime instanceof Date
           ? ride.departureTime.toISOString()
           : ride.departureTime,
@@ -122,9 +151,15 @@ export class RideRepository {
             : ride.arrivalTime
           : null,
         ride.rideStatus,
+        ride.baseFare,
+        ride.distanceFare,
+        ride.serviceFee,
+        ride.totalFare,
+        ride.driverEarnings,
         ride.farePerSeat,
         ride.totalSeats,
         ride.availableSeats,
+        ride.safetyCode || null,
         now,
         ride.rideId,
       );
@@ -197,12 +232,24 @@ export class RideRepository {
       vehicleId: row.vehicleId,
       origin: row.origin,
       destination: row.destination,
+      originLat: row.originLat,
+      originLng: row.originLng,
+      destinationLat: row.destinationLat,
+      destinationLng: row.destinationLng,
+      distance: row.distance,
+      estimatedDuration: row.estimatedDuration,
       departureTime: new Date(row.departureTime),
       arrivalTime: row.arrivalTime ? new Date(row.arrivalTime) : undefined,
       rideStatus: row.rideStatus,
+      baseFare: row.baseFare,
+      distanceFare: row.distanceFare,
+      serviceFee: row.serviceFee,
+      totalFare: row.totalFare,
+      driverEarnings: row.driverEarnings,
       farePerSeat: row.farePerSeat,
       totalSeats: row.totalSeats,
       availableSeats: row.availableSeats,
+      safetyCode: row.safetyCode,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt),
     });

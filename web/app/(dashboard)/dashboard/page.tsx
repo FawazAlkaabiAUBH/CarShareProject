@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
+import NotificationBell from '@/components/NotificationBell';
 import { apiClient } from '@/lib/api';
 import { User, Search, PlusCircle, Calendar, Home, Car, Bell, Clock, Shield } from 'lucide-react';
 
@@ -20,7 +21,8 @@ interface Booking {
   rideId: number;
   userId: number;
   seatsBooked: number;
-  totalFare: number;
+  totalFare?: number;
+  totalAmount?: number;
   bookingStatus: string;
   createdAt: string;
 }
@@ -91,10 +93,13 @@ export default function DashboardPage() {
             <p className="text-[#99a1af] text-sm">Welcome back,</p>
             <h1 className="text-2xl font-medium text-white">{user.fullName || 'User'}</h1>
           </div>
-          <IconButton
-            icon={<User className="w-6 h-6 text-slate-300" />}
-            onClick={() => router.push('/profile')}
-          />
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+            <IconButton
+              icon={<User className="w-6 h-6 text-slate-300" />}
+              onClick={() => router.push('/profile')}
+            />
+          </div>
         </div>
 
         {/* Quick Actions */}
@@ -207,7 +212,9 @@ export default function DashboardPage() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-[#dc143c] font-bold">{booking.totalFare.toFixed(2)} BD</p>
+                        <p className="text-[#dc143c] font-bold">
+                          {(booking.totalAmount || booking.totalFare || 0).toFixed(2)} BD
+                        </p>
                         <span className="inline-block px-2 py-1 bg-[#10b981]/20 text-[#10b981] text-xs rounded-full mt-1">
                           {booking.bookingStatus}
                         </span>

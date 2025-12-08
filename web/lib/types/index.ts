@@ -34,14 +34,27 @@ export interface Rider {
 
 export interface Ride {
   rideId: number;
-  driverId: number;
-  riderId?: number;
-  pickupLocation: string;
-  dropoffLocation: string;
-  pickupTime: string;
-  dropoffTime?: string;
-  fareEstimate: number;
+  userId: number; // Driver's userId
+  vehicleId: number;
+  origin: string;
+  destination: string;
+  originLat: number;
+  originLng: number;
+  destinationLat: number;
+  destinationLng: number;
+  departureTime: string;
+  estimatedArrivalTime?: string;
+  estimatedDuration?: number;
+  distance?: number;
+  baseFare?: number;
+  distanceFare?: number;
+  serviceFee?: number;
+  totalFare?: number;
+  driverEarnings?: number; // Total fare minus service fee
+  farePerSeat?: number;
   availableSeats: number;
+  totalSeats: number;
+  safetyCode?: string; // 4-digit safety code
   rideStatus: 'AVAILABLE' | 'BOOKED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   createdAt?: string;
   updatedAt?: string;
@@ -50,10 +63,19 @@ export interface Ride {
 export interface Booking {
   bookingId: number;
   rideId: number;
-  riderId: number;
+  userId: number;
   seatsBooked: number;
-  totalFare: number;
+  paymentMethod?: 'CASH' | 'BENEFITPAY';
+  benefitPayPhone?: string;
+  farePerSeat?: number;
+  totalAmount?: number;
+  totalFare?: number; // Backward compatibility
+  serviceFee?: number;
+  driverEarnings?: number;
   bookingStatus: 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+  cancellationReason?: string;
+  cancelledBy?: number;
+  completedAt?: string;
   createdAt?: string;
   updatedAt?: string;
 }

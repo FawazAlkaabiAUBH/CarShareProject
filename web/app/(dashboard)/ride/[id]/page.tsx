@@ -5,6 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
+import { SafetyCodeDisplay } from '@/components/SafetyCodeDisplay';
+import { FareSummary } from '@/components/FareSummary';
+import { PaymentMethodSelector } from '@/components/PaymentMethodSelector';
 import { apiClient } from '@/lib/api';
 import { 
   ChevronLeft, 
@@ -13,7 +16,8 @@ import {
   Car, 
   Calendar,
   Users,
-  CheckCircle2
+  CheckCircle2,
+  CreditCard
 } from 'lucide-react';
 
 interface Ride {
@@ -24,7 +28,16 @@ interface Ride {
   departureTime: string;
   farePerSeat: number;
   availableSeats: number;
+  totalSeats: number;
   rideStatus: string;
+  safetyCode?: string;
+  baseFare?: number;
+  distanceFare?: number;
+  serviceFee?: number;
+  totalFare?: number;
+  totalAmount?: number;
+  driverEarnings?: number;
+  distance?: number;
 }
 
 interface Driver {
@@ -72,6 +85,8 @@ export default function RideDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState(false);
   const [seatsToBook, setSeatsToBook] = useState(1);
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'BENEFITPAY'>('CASH');
+  const [benefitPayPhone, setBenefitPayPhone] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
@@ -125,6 +140,20 @@ export default function RideDetailsPage() {
   const handleBookRide = async () => {
     if (!ride) return;
 
+    // Validate seats selection
+    if (seatsToBook < 1) {
+      alert('Please select at least one seat');
+      return;
+    }
+
+    // Validate BenefitPay phone if selected
+    if (paymentMethod === 'BENEFITPAY') {
+      if (!benefitPayPhone || benefitPayPhone.length !== 8) {
+        alert('Please enter a valid 8-digit BenefitPay phone number');
+        return;
+      }
+    }
+
     try {
       setBooking(true);
       
@@ -140,6 +169,8 @@ export default function RideDetailsPage() {
       const bookingData = {
         rideId: ride.rideId,
         seatsBooked: seatsToBook,
+        paymentMethod: paymentMethod,
+        benefitPayPhone: paymentMethod === 'BENEFITPAY' ? benefitPayPhone : undefined,
       };
 
       await apiClient.post('/bookings', bookingData);
@@ -191,7 +222,47 @@ export default function RideDetailsPage() {
             </div>
             <h2 className="text-2xl font-bold text-white mb-2">Booking Successful!</h2>
             <p className="text-[#99a1af] mb-6">
-              Your ride has been booked successfully. Redirecting to dashboard...
+              Your ride has been booked successfully.
+            </p>
+
+            {/* Payment Instructions */}
+            <div className="bg-white/5 rounded-2xl p-4 mb-6 text-left">
+              <div className="flex items-start gap-3 mb-3">
+                <CreditCard className="w-5 h-5 text-[#dc143c] mt-0.5" />
+                <div>
+                  <p className="text-white font-semibold mb-1">Payment Method</p>
+                  <p className="text-[#99a1af] text-sm">
+                    {paymentMethod === 'CASH' ? 'Cash' : 'BenefitPay'}
+                  </p>
+                </div>
+              </div>
+
+              {paymentMethod === 'CASH' ? (
+                <div className="bg-white/5 rounded-xl p-3">
+                  <p className="text-white text-sm">
+                    💵 Pay the driver <span className="font-bold text-[#dc143c]">{(ride.farePerSeat * seatsToBook).toFixed(3)} BD</span> in cash at the end of your ride.
+                  </p>
+                </div>
+              ) : (
+                <div className="bg-white/5 rounded-xl p-3 space-y-2">
+                  <p className="text-white text-sm">
+                    📱 Pay via BenefitPay app to the driver after your ride.
+                  </p>
+                  <p className="text-white text-sm">
+                    <span className="text-[#99a1af]">Amount:</span> <span className="font-bold text-[#dc143c]">{(ride.farePerSeat * seatsToBook).toFixed(3)} BD</span>
+                  </p>
+                  <p className="text-white text-sm">
+                    <span className="text-[#99a1af]">Your BenefitPay:</span> <span className="font-mono">{benefitPayPhone}</span>
+                  </p>
+                  <p className="text-xs text-[#99a1af] mt-2">
+                    The driver will provide their BenefitPay number during the ride.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <p className="text-[#99a1af] text-sm">
+              Redirecting to dashboard...
             </p>
           </div>
         </Card>
@@ -303,6 +374,38 @@ export default function RideDetailsPage() {
           </Card>
         )}
 
+        {/* Safety Code Display */}
+        {ride.safetyCode && (
+          <SafetyCodeDisplay
+            safetyCode={ride.safetyCode}
+            rideStatus={ride.rideStatus as any}
+            isDriver={(() => {
+              const userStr = localStorage.getItem('user');
+              if (!userStr) return false;
+              const user = JSON.parse(userStr);
+              return user.userId === ride.userId;
+            })()}
+          />
+        )}
+
+        {/* Fare Summary */}
+        <FareSummary
+          baseFare={ride.baseFare}
+          distanceFare={ride.distanceFare}
+          serviceFee={ride.serviceFee}
+          totalFare={ride.totalAmount || ride.totalFare || 0}
+          driverEarnings={ride.driverEarnings}
+          farePerSeat={ride.farePerSeat}
+          totalSeats={ride.totalSeats}
+          distance={ride.distance}
+          isDriver={(() => {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) return false;
+            const user = JSON.parse(userStr);
+            return user.userId === ride.userId;
+          })()}
+        />
+
         {/* Seats Selection */}
         <Card variant="glass">
           <div className="space-y-4">
@@ -335,26 +438,22 @@ export default function RideDetailsPage() {
                 +
               </Button>
             </div>
+            
+            <div className="border-t border-white/10 pt-3 flex items-center justify-between">
+              <span className="text-white font-semibold">Your total</span>
+              <span className="text-[#dc143c] font-bold text-xl">{totalFare.toFixed(3)} BD</span>
+            </div>
           </div>
         </Card>
 
-        {/* Price Breakdown */}
-        <Card variant="glass">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[#99a1af]">Price per seat</span>
-              <span className="text-white">{ride.farePerSeat.toFixed(2)} BD</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[#99a1af]">Seats booked</span>
-              <span className="text-white">× {seatsToBook}</span>
-            </div>
-            <div className="border-t border-white/10 pt-3 flex items-center justify-between">
-              <span className="text-white font-semibold text-lg">Total</span>
-              <span className="text-[#dc143c] font-bold text-2xl">{totalFare.toFixed(2)} BD</span>
-            </div>
-          </div>
-        </Card>
+        {/* Payment Method Selection */}
+        <PaymentMethodSelector
+          selectedMethod={paymentMethod}
+          onMethodChange={setPaymentMethod}
+          benefitPayPhone={benefitPayPhone}
+          onBenefitPayPhoneChange={setBenefitPayPhone}
+          showPhoneInput={true}
+        />
       </div>
 
       {/* Fixed Bottom CTA */}

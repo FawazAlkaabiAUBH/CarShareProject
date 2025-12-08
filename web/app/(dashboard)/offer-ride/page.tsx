@@ -6,8 +6,10 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { IconButton } from '@/components/ui/IconButton';
+import { LocationCoordinates } from '@/components/LocationPicker';
 import { apiClient } from '@/lib/api';
-import { ChevronLeft, MapPin, Navigation, Clock, DollarSign, Car, AlertCircle, Plus } from 'lucide-react';
+import { ChevronLeft, Clock, Car, AlertCircle, Plus, Info } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
 interface Vehicle {
   vehicleId: number;
@@ -19,19 +21,31 @@ interface Vehicle {
   isActive: boolean;
 }
 
+// Dynamically import LocationPicker to avoid SSR issues with Leaflet
+const LocationPickerDynamic = dynamic(() => import('@/components/LocationPicker'), {
+  ssr: false,
+  loading: () => <div className="h-[400px] bg-[#1e2939] rounded-[18px] flex items-center justify-center text-[#99a1af]">Loading map...</div>,
+});
+
 export default function OfferRidePage() {
   const router = useRouter();
   const [isDriver, setIsDriver] = useState<boolean | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [userId, setUserId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
-    origin: '',
-    destination: '',
+    origin: null as LocationCoordinates | null,
+    destination: null as LocationCoordinates | null,
     departureTime: '',
     availableSeats: '4',
-    fareEstimate: '',
     vehicleId: '',
+    estimatedDuration: '',
   });
+  const [calculatedFare, setCalculatedFare] = useState<{
+    distance: number;
+    baseFare: number;
+    distanceFare: number;
+    serviceFee: number;
+    totalFare: number;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -39,10 +53,42 @@ export default function OfferRidePage() {
     checkDriverStatus();
   }, []);
 
+  // Calculate fare when both locations are selected
+  useEffect(() => {
+    if (formData.origin && formData.destination) {
+      const distance = calculateDistance(
+        formData.origin.lat,
+        formData.origin.lng,
+        formData.destination.lat,
+        formData.destination.lng
+      );
+
+      // Backend fare calculation logic (matching backend)
+      const BASE_FARE = 0.5;
+      const FARE_PER_KM = 0.15;
+      const SERVICE_FEE_PERCENTAGE = 0.1;
+
+      const baseFare = BASE_FARE;
+      const distanceFare = distance * FARE_PER_KM;
+      const subtotal = baseFare + distanceFare;
+      const serviceFee = subtotal * SERVICE_FEE_PERCENTAGE;
+      const totalFare = subtotal + serviceFee;
+
+      setCalculatedFare({
+        distance,
+        baseFare,
+        distanceFare,
+        serviceFee,
+        totalFare,
+      });
+    } else {
+      setCalculatedFare(null);
+    }
+  }, [formData.origin, formData.destination]);
+
   const checkDriverStatus = async () => {
     try {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      setUserId(user.userId);
       
       // Check if user has a driver profile using status endpoint
       const statusResponse = await apiClient.get(`/drivers/user/${user.userId}/status`);
@@ -70,6 +116,19 @@ export default function OfferRidePage() {
     }
   };
 
+  // Haversine formula to calculate distance between two coordinates
+  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371; // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
   const handleOfferRide = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -82,13 +141,23 @@ export default function OfferRidePage() {
         return;
       }
 
+      if (!formData.origin || !formData.destination) {
+        setError('Please select both pickup and dropoff locations on the map');
+        setLoading(false);
+        return;
+      }
+
       const response = await apiClient.post('/rides', {
         vehicleId: parseInt(formData.vehicleId),
-        origin: formData.origin,
-        destination: formData.destination,
+        origin: formData.origin.address || `${formData.origin.lat}, ${formData.origin.lng}`,
+        destination: formData.destination.address || `${formData.destination.lat}, ${formData.destination.lng}`,
+        originLat: formData.origin.lat,
+        originLng: formData.origin.lng,
+        destinationLat: formData.destination.lat,
+        destinationLng: formData.destination.lng,
         departureTime: new Date(formData.departureTime).toISOString(),
         totalSeats: parseInt(formData.availableSeats),
-        farePerSeat: parseFloat(formData.fareEstimate) || 0,
+        estimatedDuration: formData.estimatedDuration ? parseInt(formData.estimatedDuration) : undefined,
       });
 
       if (response.data) {
@@ -231,21 +300,59 @@ export default function OfferRidePage() {
               )}
             </div>
 
-            <Input
-              placeholder="Pickup Location"
-              value={formData.origin}
-              onChange={(e) => setFormData({ ...formData, origin: e.target.value })}
-              required
-              icon={<MapPin className="w-5 h-5" />}
-            />
+            {/* Pickup Location */}
+            <div>
+              <LocationPickerDynamic
+                label="Pickup Location *"
+                placeholder="Search or click on map to select pickup location"
+                markerType="origin"
+                onLocationSelect={(location) => setFormData({ ...formData, origin: location })}
+                initialLocation={formData.origin || undefined}
+              />
+            </div>
 
-            <Input
-              placeholder="Dropoff Location"
-              value={formData.destination}
-              onChange={(e) => setFormData({ ...formData, destination: e.target.value })}
-              required
-              icon={<Navigation className="w-5 h-5" />}
-            />
+            {/* Dropoff Location */}
+            <div>
+              <LocationPickerDynamic
+                label="Dropoff Location *"
+                placeholder="Search or click on map to select dropoff location"
+                markerType="destination"
+                onLocationSelect={(location) => setFormData({ ...formData, destination: location })}
+                initialLocation={formData.destination || undefined}
+              />
+            </div>
+
+            {/* Fare Preview */}
+            {calculatedFare && (
+              <div className="bg-[#dc143c]/10 border-2 border-[#dc143c]/30 rounded-[18px] p-4 space-y-2">
+                <div className="flex items-center gap-2 mb-3">
+                  <Info className="w-5 h-5 text-[#dc143c]" />
+                  <h3 className="text-white font-medium">Fare Breakdown (Auto-calculated)</h3>
+                </div>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between text-[#d1d5dc]">
+                    <span>Distance:</span>
+                    <span>{calculatedFare.distance.toFixed(2)} km</span>
+                  </div>
+                  <div className="flex justify-between text-[#99a1af]">
+                    <span>Base Fare:</span>
+                    <span>{calculatedFare.baseFare.toFixed(2)} BHD</span>
+                  </div>
+                  <div className="flex justify-between text-[#99a1af]">
+                    <span>Distance Fare ({calculatedFare.distance.toFixed(2)} km × 0.15):</span>
+                    <span>{calculatedFare.distanceFare.toFixed(2)} BHD</span>
+                  </div>
+                  <div className="flex justify-between text-[#99a1af]">
+                    <span>Service Fee (10%):</span>
+                    <span>{calculatedFare.serviceFee.toFixed(2)} BHD</span>
+                  </div>
+                  <div className="flex justify-between text-white font-medium text-base pt-2 border-t border-white/10">
+                    <span>Total Fare per Seat:</span>
+                    <span>{calculatedFare.totalFare.toFixed(2)} BHD</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <Input
               type="datetime-local"
@@ -280,12 +387,11 @@ export default function OfferRidePage() {
 
             <Input
               type="number"
-              label="Fare per Seat (BHD)"
-              placeholder="2.50"
-              step="0.01"
-              value={formData.fareEstimate}
-              onChange={(e) => setFormData({ ...formData, fareEstimate: e.target.value })}
-              icon={<DollarSign className="w-5 h-5" />}
+              label="Estimated Duration (minutes)"
+              placeholder="30"
+              value={formData.estimatedDuration}
+              onChange={(e) => setFormData({ ...formData, estimatedDuration: e.target.value })}
+              icon={<Clock className="w-5 h-5" />}
             />
           </div>
         </Card>

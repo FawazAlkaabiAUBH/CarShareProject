@@ -2,6 +2,8 @@ import { Injectable, ForbiddenException, BadRequestException, NotFoundException 
 import { BookingRepository } from '../repositories/booking.repository';
 import { RideRepository } from '../repositories/ride.repository';
 import { RiderRepository } from '../repositories/rider.repository';
+import { UserRepository } from '../repositories/user.repository';
+import { NotificationService } from './notification.service';
 import { CreateBookingDto, UpdateBookingStatusDto } from '../dto/booking.dto';
 import { Booking } from '../entities/booking.entity';
 
@@ -11,6 +13,8 @@ export class BookingService {
     private readonly bookingRepository: BookingRepository,
     private readonly rideRepository: RideRepository,
     private readonly riderRepository: RiderRepository,
+    private readonly userRepository: UserRepository,
+    private readonly notificationService: NotificationService,
   ) {}
 
   createBooking(createBookingDto: CreateBookingDto, userId: number): Booking {
@@ -30,6 +34,11 @@ export class BookingService {
       throw new BadRequestException('Not enough available seats for this ride');
     }
 
+    // Validate payment method
+    if (createBookingDto.paymentMethod === 'BENEFITPAY' && !createBookingDto.benefitPayPhone) {
+      throw new BadRequestException('BenefitPay phone number is required for BenefitPay payment method');
+    }
+
     // Check for duplicate booking
     const existingBookings = this.bookingRepository.findByUser(userId);
     const alreadyBooked = existingBookings.some(
@@ -39,13 +48,24 @@ export class BookingService {
       throw new BadRequestException('You have already booked this ride');
     }
 
-    // Create booking
+    // Calculate fare details
     const seatsBooked = createBookingDto.seatsBooked || 1;
+    const farePerSeat = ride.farePerSeat;
+    const totalAmount = parseFloat((farePerSeat * seatsBooked).toFixed(3));
+    const serviceFee = parseFloat((totalAmount * 0.1).toFixed(3)); // 10% service fee
+    const driverEarnings = parseFloat((totalAmount - serviceFee).toFixed(3));
+
+    // Create booking
     const booking = this.bookingRepository.save({
       userId,
       rideId: createBookingDto.rideId,
       seatsBooked,
-      totalFare: ride.farePerSeat * seatsBooked,
+      paymentMethod: createBookingDto.paymentMethod,
+      benefitPayPhone: createBookingDto.benefitPayPhone,
+      farePerSeat,
+      totalAmount,
+      serviceFee,
+      driverEarnings,
       bookingStatus: 'PENDING',
     });
 
@@ -57,6 +77,15 @@ export class BookingService {
     if (updatedRide && updatedRide.availableSeats === 0) {
       this.rideRepository.updateStatus(createBookingDto.rideId, 'BOOKED');
     }
+
+    // Send notification to driver
+    const riderUser = this.userRepository.findById(userId);
+    const riderName = riderUser ? riderUser.fullName : 'A rider';
+    this.notificationService.notifyBookingRequest(
+      ride.userId,
+      booking.bookingId,
+      riderName
+    ).catch(err => console.error('Failed to send notification:', err));
 
     return booking;
   }
@@ -118,6 +147,21 @@ export class BookingService {
     }
 
     this.bookingRepository.updateStatus(bookingId, updateStatusDto.status);
+    
+    // Send notification when booking is confirmed
+    if (updateStatusDto.status === 'CONFIRMED') {
+      const ride = this.rideRepository.findById(booking.rideId);
+      if (ride) {
+        const driverUser = this.userRepository.findById(ride.userId);
+        const driverName = driverUser ? driverUser.fullName : 'The driver';
+        this.notificationService.notifyBookingConfirmed(
+          booking.userId,
+          bookingId,
+          driverName
+        ).catch(err => console.error('Failed to send notification:', err));
+      }
+    }
+    
     const updatedBooking = this.bookingRepository.findById(bookingId);
     if (!updatedBooking) {
       throw new NotFoundException(`Failed to retrieve booking with ID ${bookingId}`);
