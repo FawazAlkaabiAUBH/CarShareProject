@@ -176,7 +176,6 @@ export default function ProfilePage() {
     
     try {
       await apiClient.post('/vehicles', {
-        userId: user?.userId,
         make: vehicleForm.make,
         model: vehicleForm.model,
         year: parseInt(vehicleForm.year),

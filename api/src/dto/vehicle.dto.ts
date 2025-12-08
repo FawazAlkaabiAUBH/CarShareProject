@@ -2,10 +2,6 @@ import { IsNotEmpty, IsNumber, IsString, IsOptional, IsBoolean, Min, Max } from 
 
 export class CreateVehicleDto {
   @IsNotEmpty()
-  @IsNumber()
-  userId: number;
-
-  @IsNotEmpty()
   @IsString()
   make: string;
 

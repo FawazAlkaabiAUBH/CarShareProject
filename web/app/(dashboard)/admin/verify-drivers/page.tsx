@@ -12,7 +12,6 @@ interface Driver {
   userId: number;
   licenseNumber: string;
   licenseDocument?: string;
-  vehicleDocument?: string;
   isVerified: boolean;
   user: {
     fullName: string;
@@ -26,12 +25,13 @@ interface Driver {
     year: number;
     color: string;
     plateNumber: string;
+    vehicleDocument?: string;
   }>;
 }
 
 export default function VerifyDriversPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ role: string } | null>(null);
+  const [user, setUser] = useState<{ userId: number; role: string } | null>(null);
   const [pendingDrivers, setPendingDrivers] = useState<Driver[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [loading, setLoading] = useState(false);
@@ -71,20 +71,8 @@ export default function VerifyDriversPage() {
     
     try {
       if (approve) {
-        // Update driver verification status
-        await apiClient.put(`/drivers/user/${userId}`, {
-          isVerified: true,
-        });
-
-        // Activate all driver's vehicles
-        const driver = pendingDrivers.find(d => d.userId === userId);
-        if (driver?.vehicles) {
-          for (const vehicle of driver.vehicles) {
-            await apiClient.put(`/vehicles/${vehicle.vehicleId}`, {
-              isActive: true,
-            });
-          }
-        }
+        // Use dedicated verify endpoint that handles both driver verification and vehicle activation
+        await apiClient.put(`/drivers/user/${userId}/verify`);
         
         setSuccess('Driver approved successfully');
       } else {
@@ -215,25 +203,40 @@ export default function VerifyDriversPage() {
             {selectedDriver.vehicles && selectedDriver.vehicles.length > 0 && (
               <Card variant="default">
                 <h3 className="text-lg font-medium text-white mb-4">Vehicles</h3>
-                {selectedDriver.vehicles.map((vehicle) => (
-                  <div key={vehicle.vehicleId} className="flex items-center gap-3 p-3 bg-white/5 rounded-[18px]">
-                    <Car className="w-5 h-5 text-[#dc143c]" />
-                    <div className="flex-1">
-                      <p className="text-white">
-                        {vehicle.make} {vehicle.model} {vehicle.year}
-                      </p>
-                      <p className="text-[#99a1af] text-sm">
-                        {vehicle.color} • {vehicle.plateNumber}
-                      </p>
+                <div className="space-y-3">
+                  {selectedDriver.vehicles.map((vehicle) => (
+                    <div key={vehicle.vehicleId} className="p-3 bg-white/5 rounded-[18px]">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Car className="w-5 h-5 text-[#dc143c]" />
+                        <div className="flex-1">
+                          <p className="text-white">
+                            {vehicle.make} {vehicle.model} {vehicle.year}
+                          </p>
+                          <p className="text-[#99a1af] text-sm">
+                            {vehicle.color} • {vehicle.plateNumber}
+                          </p>
+                        </div>
+                      </div>
+                      {vehicle.vehicleDocument && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="w-full mt-2"
+                          onClick={() => openDocument(vehicle.vehicleDocument!)}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Vehicle Document
+                        </Button>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </Card>
             )}
 
             {/* Documents */}
             <Card variant="default">
-              <h3 className="text-lg font-medium text-white mb-4">Documents</h3>
+              <h3 className="text-lg font-medium text-white mb-4">License Documents</h3>
               <div className="space-y-3">
                 {selectedDriver.licenseDocument && (
                   <Button
@@ -246,19 +249,8 @@ export default function VerifyDriversPage() {
                     View License Document
                   </Button>
                 )}
-                {selectedDriver.vehicleDocument && (
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    className="w-full"
-                    onClick={() => openDocument(selectedDriver.vehicleDocument!)}
-                  >
-                    <Eye className="w-5 h-5 mr-2" />
-                    View Vehicle Document
-                  </Button>
-                )}
-                {!selectedDriver.licenseDocument && !selectedDriver.vehicleDocument && (
-                  <p className="text-center text-[#99a1af] text-sm">No documents uploaded</p>
+                {!selectedDriver.licenseDocument && (
+                  <p className="text-center text-[#99a1af] text-sm">No license document uploaded</p>
                 )}
               </div>
             </Card>

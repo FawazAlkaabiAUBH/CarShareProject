@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { IconButton } from '@/components/ui/IconButton';
 import { apiClient } from '@/lib/api';
-import { User, Search, PlusCircle, Calendar, Home, Car, Bell, MapPin, Navigation, Clock } from 'lucide-react';
+import { User, Search, PlusCircle, Calendar, Home, Car, Bell, Clock, Shield } from 'lucide-react';
 
 interface User {
   userId: number;
@@ -98,7 +98,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className={`grid ${user.role === 'ADMIN' ? 'grid-cols-3' : 'grid-cols-2'} gap-4 mb-8`}>
           <Card
             variant="glass"
             className="cursor-pointer hover:bg-white/10"
@@ -126,6 +126,22 @@ export default function DashboardPage() {
               <p className="text-sm text-[#99a1af] mt-1">Share your journey</p>
             </div>
           </Card>
+
+          {user.role === 'ADMIN' && (
+            <Card
+              variant="glass"
+              className="cursor-pointer hover:bg-white/10"
+              onClick={() => router.push('/admin/verify-drivers')}
+            >
+              <div className="flex flex-col items-center text-center py-4">
+                <div className="w-16 h-16 bg-gradient-to-b from-[#10b981] to-[#059669] rounded-full flex items-center justify-center mb-4">
+                  <Shield className="w-8 h-8 text-white" strokeWidth={2.5} />
+                </div>
+                <p className="text-white font-medium">Verify Drivers</p>
+                <p className="text-sm text-[#99a1af] mt-1">Admin panel</p>
+              </div>
+            </Card>
+          )}
         </div>
 
         {/* My Bookings */}
@@ -237,7 +253,7 @@ export default function DashboardPage() {
               <Home className="w-6 h-6 text-[#dc143c]" />
               <span className="text-xs text-[#dc143c]">Home</span>
             </button>
-            <button className="flex flex-col items-center gap-1" onClick={() => router.push('/rides')}>
+            <button className="flex flex-col items-center gap-1" onClick={() => router.push('/find-ride')}>
               <Car className="w-6 h-6 text-[#99a1af]" />
               <span className="text-xs text-[#99a1af]">Rides</span>
             </button>

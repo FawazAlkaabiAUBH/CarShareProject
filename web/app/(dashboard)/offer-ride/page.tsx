@@ -83,7 +83,6 @@ export default function OfferRidePage() {
       }
 
       const response = await apiClient.post('/rides', {
-        userId: userId,
         vehicleId: parseInt(formData.vehicleId),
         origin: formData.origin,
         destination: formData.destination,

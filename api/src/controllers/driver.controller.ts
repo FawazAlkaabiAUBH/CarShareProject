@@ -2,10 +2,12 @@ import {
   Controller,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   ParseIntPipe,
   Get,
+  Request,
 } from '@nestjs/common';
 import { DriverService } from '../services/driver.service';
 import { RegisterDriverDto, UpdateDriverDto } from '../dto/driver.dto';
@@ -15,8 +17,8 @@ export class DriverController {
   constructor(private readonly driverService: DriverService) {}
 
   @Post()
-  registerDriver(@Body() registerDriverDto: RegisterDriverDto) {
-    return this.driverService.registerDriver(registerDriverDto);
+  registerDriver(@Body() registerDriverDto: RegisterDriverDto, @Request() req: any) {
+    return this.driverService.registerDriver(registerDriverDto, req.user.userId);
   }
 
   @Get('verified')
@@ -72,5 +74,19 @@ export class DriverController {
   ) {
     this.driverService.updateRating(id, ratingDto.rating);
     return { message: 'Driver rating updated successfully' };
+  }
+
+  @Delete('user/:userId')
+  deleteDriver(@Param('userId', ParseIntPipe) userId: number) {
+    this.driverService.deleteDriver(userId);
+    return { message: 'Driver deleted successfully' };
+  }
+
+  @Put('user/:userId/verify')
+  verifyDriver(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Request() req: any,
+  ) {
+    return this.driverService.verifyDriverAndActivateVehicles(userId, req.user.userId);
   }
 }

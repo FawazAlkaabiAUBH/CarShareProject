@@ -50,14 +50,15 @@ export class DriverRepository {
     if (!existing) {
       // Insert new driver
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO drivers (userId, licenseNumber, licenseDocument, rating, totalRides, verifiedAt, verifiedBy, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO drivers (userId, licenseNumber, licenseDocument, isVerified, rating, totalRides, verifiedAt, verifiedBy, createdAt, updatedAt)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       stmt.run(
         driver.userId,
         driver.licenseNumber,
         driver.licenseDocument ?? null,
+        driver.isVerified ? 1 : 0,
         driver.rating ?? 0,
         driver.totalRides ?? 0,
         driver.verifiedAt ? driver.verifiedAt.toISOString() : null,
@@ -71,16 +72,32 @@ export class DriverRepository {
       // Update existing driver
       const stmt = this.db.getDatabase().prepare(`
         UPDATE drivers
-        SET licenseNumber = ?, licenseDocument = ?, rating = ?, totalRides = ?, verifiedAt = ?, verifiedBy = ?, updatedAt = ?
+        SET licenseNumber = ?, licenseDocument = ?, isVerified = ?, rating = ?, totalRides = ?, verifiedAt = ?, verifiedBy = ?, updatedAt = ?
         WHERE userId = ?
       `);
+
+      // Auto-set verifiedAt when isVerified changes from false to true
+      let verifiedAtValue;
+      if (driver.isVerified === true && !existing.isVerified) {
+        // Being verified now
+        verifiedAtValue = now;
+      } else if (driver.verifiedAt) {
+        // Explicit verifiedAt provided
+        verifiedAtValue = driver.verifiedAt.toISOString();
+      } else if (existing.verifiedAt) {
+        // Keep existing value
+        verifiedAtValue = existing.verifiedAt.toISOString();
+      } else {
+        verifiedAtValue = null;
+      }
 
       stmt.run(
         driver.licenseNumber ?? existing.licenseNumber,
         driver.licenseDocument ?? existing.licenseDocument,
+        driver.isVerified !== undefined ? (driver.isVerified ? 1 : 0) : (existing.isVerified ? 1 : 0),
         driver.rating ?? existing.rating,
         driver.totalRides ?? existing.totalRides,
-        driver.verifiedAt ? driver.verifiedAt.toISOString() : existing.verifiedAt?.toISOString() ?? null,
+        verifiedAtValue,
         driver.verifiedBy ?? existing.verifiedBy,
         now,
         driver.userId,

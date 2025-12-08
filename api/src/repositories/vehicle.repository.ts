@@ -24,6 +24,15 @@ export class VehicleRepository {
     return rows.map((row) => this.mapToEntity(row));
   }
 
+  findAllByUserId(userId: number): Vehicle[] {
+    const rows = this.db
+      .getDatabase()
+      .prepare('SELECT * FROM vehicles WHERE userId = ?')
+      .all(userId) as any[];
+
+    return rows.map((row) => this.mapToEntity(row));
+  }
+
   findActiveByUserId(userId: number): Vehicle[] {
     const rows = this.db
       .getDatabase()
