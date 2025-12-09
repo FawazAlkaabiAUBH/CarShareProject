@@ -122,7 +122,7 @@ export interface Rating {
 
 // ============= Notification Types =============
 export interface Notification {
-  id: number;
+  notificationId: number;
   userId: number;
   type: 'MATCH' | 'PAYMENT' | 'MESSAGE' | 'RIDE_COMPLETED' | 'RIDE_CANCELLED' | 'SYSTEM';
   title: string;

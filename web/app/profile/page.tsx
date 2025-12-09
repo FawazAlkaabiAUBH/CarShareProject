@@ -111,9 +111,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-
-      {/* Dynamic Island */}
-      <div className="fixed top-[25.5px] left-1/2 -translate-x-1/2 w-[126px] h-[31.5px] bg-black rounded-full z-50" />
     </div>
   );
 }

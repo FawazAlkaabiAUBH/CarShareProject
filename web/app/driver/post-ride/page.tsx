@@ -40,12 +40,26 @@ export default function PostRidePage() {
     setLoading(true);
 
     try {
+      // Get user's active vehicle - TODO: Allow vehicle selection in UI
+      const vehiclesResponse = await apiClient.get('/vehicles/my/active');
+      const vehicles = vehiclesResponse.data;
+      
+      if (!vehicles || vehicles.length === 0) {
+        setError('Please register a vehicle first');
+        setLoading(false);
+        return;
+      }
+
       const response = await apiClient.post('/rides', {
+        vehicleId: vehicles[0].vehicleId,
         origin: formData.pickupLocation.address || `${formData.pickupLocation.lat},${formData.pickupLocation.lng}`,
         destination: formData.destination.address || `${formData.destination.lat},${formData.destination.lng}`,
+        originLat: formData.pickupLocation.lat,
+        originLng: formData.pickupLocation.lng,
+        destinationLat: formData.destination.lat,
+        destinationLng: formData.destination.lng,
         departureTime: formData.arrivalTime,
-        availableSeats: formData.availableSeats,
-        rideStatus: 'OPEN',
+        totalSeats: formData.availableSeats,
       });
 
       // Navigate to matching screen
@@ -163,9 +177,6 @@ export default function PostRidePage() {
           </Button>
         </form>
       </div>
-
-      {/* Dynamic Island */}
-      <div className="fixed top-[25.5px] left-1/2 -translate-x-1/2 w-[126px] h-[31.5px] bg-black rounded-full z-50" />
     </div>
   );
 }

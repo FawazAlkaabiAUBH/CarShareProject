@@ -40,13 +40,16 @@ export default function RideRequestPage() {
     setLoading(true);
 
     try {
-      // Search for available rides
-      const response = await apiClient.get('/rides/available', {
+      // Search for available rides using nearby search
+      const response = await apiClient.get('/rides/nearby/search', {
         params: {
-          origin: formData.pickupLocation.address || `${formData.pickupLocation.lat},${formData.pickupLocation.lng}`,
-          destination: formData.destination.address || `${formData.destination.lat},${formData.destination.lng}`,
-          departureTime: formData.pickupTime,
-          seats: formData.passengers,
+          lat: formData.pickupLocation.lat,
+          lng: formData.pickupLocation.lng,
+          destLat: formData.destination.lat,
+          destLng: formData.destination.lng,
+          maxPickupDistance: 5,
+          maxDropoffDistance: 5,
+          startDate: formData.pickupTime,
         },
       });
 
@@ -165,9 +168,6 @@ export default function RideRequestPage() {
           </Button>
         </form>
       </div>
-
-      {/* Dynamic Island */}
-      <div className="fixed top-[25.5px] left-1/2 -translate-x-1/2 w-[126px] h-[31.5px] bg-black rounded-full z-50" />
     </div>
   );
 }

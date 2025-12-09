@@ -2,18 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { apiClient } from '@/lib/api';
-
-export interface Notification {
-  notificationId: number;
-  userId: number;
-  type: 'BOOKING_REQUEST' | 'BOOKING_CONFIRMED' | 'BOOKING_CANCELLED' | 'RIDE_STARTED' | 'RIDE_COMPLETED' | 'DRIVER_VERIFIED' | 'SYSTEM';
-  title: string;
-  message: string;
-  relatedEntityType?: string;
-  relatedEntityId?: number;
-  isRead: boolean;
-  createdAt: string;
-}
+import { Notification } from '@/lib/types';
 
 interface NotificationContextType {
   notifications: Notification[];
