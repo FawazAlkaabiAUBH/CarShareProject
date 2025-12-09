@@ -1,6 +1,6 @@
 /**
  * Design Tokens - Based on Figma Design Specifications
- * AUBH RideShare Mobile App UI
+ * AUBH CarShare Mobile App UI
  * 
  * These tokens ensure consistency with the Figma design across all components
  */

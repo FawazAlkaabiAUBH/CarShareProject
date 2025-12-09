@@ -22,8 +22,8 @@ export default function ChatPage() {
     // { id: 2, fromUserId: 1, text: "Great! I'll be there in 5 minutes", sentAt: '10:31 AM', isRead: true },
   ]);
   const [otherUser, setOtherUser] = useState({
-    name: 'Ahmed Ali',
-    rating: 4.8,
+    name: 'Fawaz Alkaabi',
+    rating: 4.9,
   });
   const [safetyCode, setSafetyCode] = useState('4231');
 

@@ -12,9 +12,9 @@ function MatchFoundContent() {
   const [loading, setLoading] = useState(false);
 
   const driverInfo = {
-    name: 'Ahmed Ali',
+    name: 'Fawaz Alkaabi',
     phone: '+973-9876-5432',
-    rating: 4.8,
+    rating: 4.9,
     totalRides: 47,
     car: 'Toyota Camry',
     color: 'Silver',

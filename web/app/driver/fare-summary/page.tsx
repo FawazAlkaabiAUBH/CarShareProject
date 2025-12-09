@@ -16,7 +16,7 @@ function FareSummaryContent() {
     destination: 'City Centre Mall',
     distance: '5.2 km',
     duration: '18 min',
-    rider: 'Sara Ali',
+    rider: 'Fatima Hassan',
     baseFare: 2.50,
     distanceFare: 1.30,
     serviceFee: 0.40,

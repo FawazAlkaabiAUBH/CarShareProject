@@ -68,7 +68,7 @@ export default function LoginPage() {
             Welcome Back
           </h1>
           <p className="text-lg leading-[27px] tracking-[-0.44px] text-[#99A1AF] text-center">
-            Sign in to continue to AUBH RideShare
+            Sign in to continue to AUBH CarShare
           </p>
         </div>
       </div>
@@ -136,7 +136,7 @@ export default function LoginPage() {
         </Button>
 
         <p className="text-lg leading-[27px] tracking-[-0.44px] text-[#99A1AF] text-center">
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <button
             type="button"
             onClick={() => router.push('/signup')}

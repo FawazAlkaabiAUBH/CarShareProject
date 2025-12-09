@@ -77,7 +77,7 @@ Configurable pricing system with:
 - **Fare:** 3.683 BHD (Base: 0.5 + Distance: 2.848 + Fee: 0.335)
 - **Per Seat:** 0.921 BHD
 - **Safety Code:** 1062
-- **Driver:** Ahmed Ali (Toyota Camry)
+- **Driver:** Fawaz Alkaabi (Toyota Camry)
 
 #### Ride 2: Manama City Center → Riffa
 - **Distance:** 11.38 km

@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/Button';
 const MOCK_DRIVERS = [
   {
     id: 1,
-    name: 'Ahmed Ali',
-    initials: 'AH',
+    name: 'Fawaz Alkaabi',
+    initials: 'FA',
     rating: 4.9,
     car: 'Toyota Camry 2021',
     from: 'AUBH Campus',
@@ -20,7 +20,7 @@ const MOCK_DRIVERS = [
   },
   {
     id: 2,
-    name: 'Mohammed Ali',
+    name: 'Mohammed Khalid',
     initials: 'MA',
     rating: 4.7,
     car: 'Nissan Altima 2020',

@@ -21,7 +21,7 @@ export default function DriverDashboard() {
       totalRides: 47,
       thisWeek: 3,
       earned: '125.50',
-      rating: 4.8,
+      rating: 4.9,
     });
   }, []);
 
@@ -63,7 +63,7 @@ export default function DriverDashboard() {
           </div>
           <div className="flex-1">
             <h2 className="text-xl font-semibold text-white mb-1">
-              {user?.name || 'Ahmed Ali'}
+              {user?.name || 'Fawaz Alkaabi'}
             </h2>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />

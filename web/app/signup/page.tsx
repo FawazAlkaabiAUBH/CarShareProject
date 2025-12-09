@@ -56,7 +56,7 @@ export default function SignupPage() {
           Create Account
         </h1>
         <p className="text-lg leading-[27px] tracking-[-0.44px] text-[#99A1AF]">
-          Join AUBH RideShare community
+          Join AUBH CarShare community
         </p>
       </div>
 

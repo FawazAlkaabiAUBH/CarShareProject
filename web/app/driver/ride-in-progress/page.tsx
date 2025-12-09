@@ -16,7 +16,7 @@ function RideInProgressContent() {
   const [safetyCode] = useState('4231');
 
   const riderInfo = {
-    name: 'Sara Ali',
+    name: 'Fatima Hassan',
     phone: '+973-1234-5678',
     rating: 4.9,
     origin: 'AUBH Campus',
@@ -160,10 +160,6 @@ function RideInProgressContent() {
             Complete Ride
           </Button>
         )}
-      </div>
-          <Shield className="w-5 h-5" />
-          Emergency
-        </button>
       </div>
     </div>
   );

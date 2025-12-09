@@ -15,9 +15,9 @@ function RideInProgressContent() {
   const [safetyCode] = useState('4231');
 
   const driverInfo = {
-    name: 'Ahmed Ali',
+    name: 'Fawaz Alkaabi',
     phone: '+973-9876-5432',
-    rating: 4.8,
+    rating: 4.9,
     car: 'Toyota Camry',
     plate: '12345',
     origin: 'AUBH Campus',

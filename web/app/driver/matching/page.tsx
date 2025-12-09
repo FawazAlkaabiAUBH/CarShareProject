@@ -17,7 +17,7 @@ function MatchingContent() {
     // Mock data for now
     setTimeout(() => {
       setMatches([
-        { id: 1, name: 'Sara Ali', rating: 4.9, origin: 'City Center', destination: 'AUBH Campus' },
+        { id: 1, name: 'Fatima Hassan', rating: 4.9, origin: 'City Center', destination: 'AUBH Campus' },
         { id: 2, name: 'Mohammed Hassan', rating: 4.7, origin: 'Road 101 House 340 Manama Bahrain', destination: 'Main Entrance' },
       ]);
       setLoading(false);

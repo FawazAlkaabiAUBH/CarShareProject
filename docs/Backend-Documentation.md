@@ -182,7 +182,7 @@ api/
 **Register Request:**
 ```json
 {
-  "fullName": "Ahmed Ali",
+  "fullName": "Fawaz Alkaabi",
   "email": "ahmed@example.com",
   "password": "SecurePass123",
   "phoneNumber": "33445566"
@@ -195,7 +195,7 @@ api/
   "access_token": "eyJhbGciOiJIUzI1NiIs...",
   "user": {
     "userId": 1,
-    "fullName": "Ahmed Ali",
+    "fullName": "Fawaz Alkaabi",
     "email": "ahmed@example.com",
     "role": "USER"
   }
@@ -594,12 +594,12 @@ CREATE TABLE system_settings (
 The database is automatically seeded on first run with realistic Bahrain data:
 
 **Users (3):**
-- Ahmed Ali (Driver) - ahmed@aubh.edu.bh
-- Fatima Hassan (Rider) - fatima@aubh.edu.bh  
-- Mohammed Khalid (Driver) - mohammed@aubh.edu.bh
+- Fawaz Alkaabi (Driver) - f2300133@aubh.edu.bh
+- Fatima Hassan (Rider) - a99999@aubh.edu.bh  
+- Mohammed Khalid (Driver) - f2499999@aubh.edu.bh
 
 **Drivers (2):**
-- Ahmed Ali - Verified, License: DL123456
+- Fawaz Alkaabi - Verified, License: DL123456
 - Mohammed Khalid - Pending verification
 
 **Vehicles (2):**
@@ -914,7 +914,7 @@ GET /rides/nearby/search?lat=26.2361&lng=50.5339&radiusKm=10
       "rideId": 1,
       "userId": 1,
       "driver": {
-        "fullName": "Ahmed Ali",
+        "fullName": "Fawaz Alkaabi",
         "rating": 4.8
       },
       "vehicle": {

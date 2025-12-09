@@ -266,10 +266,10 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    // User 1: Ahmed - Admin and Driver
+    // User 1: Fawaz - Admin and Driver
     insertUser.run(
-      'Ahmed Ali',
-      'ahmed@aubh.edu.bh',
+      'Fawaz Alkaabi',
+      'f2300133@aubh.edu.bh',
       hashedPassword,
       '+973-1234-5678',
       '12345678',
@@ -283,7 +283,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     // User 2: Fatima - Regular user (rider)
     insertUser.run(
       'Fatima Hassan',
-      'fatima@aubh.edu.bh',
+      'a99999@aubh.edu.bh',
       hashedPassword,
       '+973-2345-6789',
       '23456789',
@@ -297,7 +297,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     // User 3: Mohammed - Regular user and driver
     insertUser.run(
       'Mohammed Khalid',
-      'mohammed@aubh.edu.bh',
+      'f2499999@aubh.edu.bh',
       hashedPassword,
       '+973-3456-7890',
       '34567890',
@@ -307,20 +307,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       now,
       now,
     );
-    
-    // User 4: Fawaz - Driver
-    insertUser.run(
-      'Fawaz Alkaabi',
-      'fawaz@aubh.edu.bh',
-      hashedPassword,
-      '+973-4567-8901',
-      '45678901',
-      'USER',
-      'ACTIVE',
-      now,
-      now,
-      now,
-    );
+
 
     // Seed drivers (simplified - using userId directly)
     const insertDriver = this.db.prepare(`
@@ -328,9 +315,9 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertDriver.run(1, 'DL12345', 1, now, 1, 4.5, 12, now, now); // Ahmed - verified by himself (admin)
-    insertDriver.run(3, 'DL67890', 1, now, 1, 4.8, 8, now, now); // Mohammed - verified by Ahmed
-    insertDriver.run(4, 'DL45678', 1, now, 1, 4.6, 5, now, now); // Fawaz - verified by Ahmed
+    insertDriver.run(1, 'DL12345', 1, now, 1, 4.5, 12, now, now); // Fawaz - verified by himself (admin)
+    insertDriver.run(3, 'DL67890', 1, now, 1, 4.8, 8, now, now); // Mohammed - verified by Fawaz
+    // insertDriver.run(4, 'DL45678', 1, now, 1, 4.6, 5, now, now); // Fawaz - verified by Ahmed
 
     // Seed vehicles
     const insertVehicle = this.db.prepare(`
@@ -340,7 +327,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     insertVehicle.run(1, 'Toyota', 'Camry', 2020, 'White', 'BH-12345', 1, now, now);
     insertVehicle.run(3, 'Honda', 'Accord', 2019, 'Black', 'BH-67890', 1, now, now);
-    insertVehicle.run(4, 'Nissan', 'Altima', 2021, 'Silver', 'BH-45678', 1, now, now);
+    // insertVehicle.run(4, 'Nissan', 'Altima', 2021, 'Silver', 'BH-45678', 1, now, now);
 
     // Seed riders (everyone can be a rider)
     const insertRider = this.db.prepare(`
@@ -351,7 +338,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     insertRider.run(1, 'Manama City', 5.0, 3, now, now); // Ahmed
     insertRider.run(2, 'Seef District', 4.7, 5, now, now); // Fatima
     insertRider.run(3, 'Riffa', 5.0, 2, now, now); // Mohammed
-    insertRider.run(4, 'Muharraq', 4.9, 4, now, now); // Fawaz
+    // insertRider.run(4, 'Muharraq', 4.9, 4, now, now); // Fawaz
 
     // Helper function to generate 4-digit safety code
     const generateSafetyCode = () => {
@@ -412,8 +399,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     
     const seefLat = 26.2361;
     const seefLng = 50.5339;
-    const aubhLat = 26.0667;
-    const aubhLng = 50.5577;
+    const aubhLat = 26.1008012;
+    const aubhLng = 50.5480834;
     const ride1Distance = calculateDistance(seefLat, seefLng, aubhLat, aubhLng);
     const ride1Fare = calculateFare(ride1Distance);
     
@@ -453,21 +440,19 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       now, now
     );
 
-    // Ride 3: Muharraq to Seef Mall (Fawaz)
+    // Ride 3: Campus to Seef Mall (Mohammed)
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
     nextWeek.setHours(10, 0, 0, 0);
-    
-    const muharraqLat = 26.2572;
-    const muharraqLng = 50.6117;
+
     const seefMallLat = 26.2361;
     const seefMallLng = 50.5339;
-    const ride3Distance = calculateDistance(muharraqLat, muharraqLng, seefMallLat, seefMallLng);
+    const ride3Distance = calculateDistance(aubhLat, aubhLng, seefMallLat, seefMallLng);
     const ride3Fare = calculateFare(ride3Distance);
     
     insertRide.run(
-      4, 3, 'Muharraq', 'Seef Mall',
-      muharraqLat, muharraqLng, seefMallLat, seefMallLng,
+      3, 2, 'AUBH Campus', 'Seef Mall',
+      aubhLat, aubhLng, seefMallLat, seefMallLng,
       Number(ride3Distance.toFixed(2)), 18,
       nextWeek.toISOString(), null,
       'AVAILABLE',
@@ -525,7 +510,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     );
 
     // Welcome notification for all users
-    for (let userId = 1; userId <= 4; userId++) {
+    for (let userId = 1; userId <= 3; userId++) {
       insertNotification.run(
         userId, 'SYSTEM',
         'Welcome to CarShare!',
