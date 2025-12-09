@@ -49,7 +49,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-xl font-semibold text-white">{user?.name || 'Ahmed Hassan'}</h2>
+                <h2 className="text-xl font-semibold text-white">{user?.name || 'Ahmed Ali'}</h2>
                 <button className="p-1 hover:bg-white/10 rounded-lg transition-colors">
                   <Edit2 className="w-4 h-4 text-[#99A1AF]" />
                 </button>

@@ -9,7 +9,7 @@ const MOCK_NOTIFICATIONS = [
     id: 1,
     type: 'MATCH',
     title: 'New match found!',
-    body: 'Ahmed Hassan is a great match for your ride to City Centre Mall',
+    body: 'Ahmed Ali is a great match for your ride to City Centre Mall',
     createdAt: '5 min ago',
     isRead: false,
     relatedRideId: 1,

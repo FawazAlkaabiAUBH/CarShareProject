@@ -9,15 +9,23 @@ export default function ChatPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [message, setMessage] = useState('');
+  
+  // Get current time minus 2 minutes
+  const getTwoMinutesAgo = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - 2);
+    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
   const [messages, setMessages] = useState([
-    { id: 1, fromUserId: 2, text: "Hi! I'm on my way to the pickup point", sentAt: '10:30 AM', isRead: true },
-    { id: 2, fromUserId: 1, text: "Great! I'll be there in 5 minutes", sentAt: '10:31 AM', isRead: true },
+    { id: 1, fromUserId: 2, text: "Hi! I'm on my way to the pickup point", sentAt: getTwoMinutesAgo(), isRead: true },
+    // { id: 2, fromUserId: 1, text: "Great! I'll be there in 5 minutes", sentAt: '10:31 AM', isRead: true },
   ]);
   const [otherUser, setOtherUser] = useState({
-    name: 'Ahmed Hassan',
+    name: 'Ahmed Ali',
     rating: 4.8,
   });
-  const [safetyCode, setSafetyCode] = useState('4827');
+  const [safetyCode, setSafetyCode] = useState('4231');
 
   const handleSend = () => {
     if (!message.trim()) return;

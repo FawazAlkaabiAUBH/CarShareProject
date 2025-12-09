@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/Button';
 const MOCK_DRIVERS = [
   {
     id: 1,
-    name: 'Ahmed Hassan',
+    name: 'Ahmed Ali',
     initials: 'AH',
     rating: 4.9,
     car: 'Toyota Camry 2021',
@@ -97,7 +97,7 @@ export default function AvailableDriversPage() {
               </div>
               <Button
                 variant="primary"
-                className="!h-[48px] px-6"
+                className="!h-[48px] px-6 flex items-center justify-center"
                 onClick={() => handleSelectDriver(driver.id)}
               >
                 Select Driver

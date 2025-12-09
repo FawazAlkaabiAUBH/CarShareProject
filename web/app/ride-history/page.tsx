@@ -11,7 +11,7 @@ const MOCK_RIDES = [
     to: 'City Centre Mall',
     date: '2024-12-07',
     time: '14:30',
-    otherPerson: 'Ahmed Hassan',
+    otherPerson: 'Ahmed Ali',
     price: 'BHD 5.50',
     status: 'COMPLETED',
   },

@@ -17,6 +17,10 @@ export class RideService {
     private readonly notificationService: NotificationService,
   ) {}
 
+  // AUBH coordinates
+  private readonly AUBH_LAT = 26.1008012;
+  private readonly AUBH_LNG = 50.5480834;
+
   createRideListing(createRideDto: CreateRideDto, userId: number): Ride {
     // Verify the user is actually registered as a driver
     const driver = this.driverRepository.findByUserId(userId);
@@ -41,6 +45,31 @@ export class RideService {
 
     if (!vehicle.isActive) {
       throw new BadRequestException('Cannot create ride with inactive vehicle');
+    }
+
+    // Validate AUBH requirement and auto-set coordinates
+    const originIsAUBH = createRideDto.origin.toLowerCase().trim() === 'aubh';
+    const destinationIsAUBH = createRideDto.destination.toLowerCase().trim() === 'aubh';
+
+    if (!originIsAUBH && !destinationIsAUBH) {
+      throw new BadRequestException('Either origin or destination must be AUBH');
+    }
+
+    if (originIsAUBH && destinationIsAUBH) {
+      throw new BadRequestException('Origin and destination cannot both be AUBH');
+    }
+
+    // Auto-set AUBH coordinates
+    if (originIsAUBH) {
+      createRideDto.originLat = this.AUBH_LAT;
+      createRideDto.originLng = this.AUBH_LNG;
+      createRideDto.origin = 'AUBH'; // Normalize to uppercase
+    }
+
+    if (destinationIsAUBH) {
+      createRideDto.destinationLat = this.AUBH_LAT;
+      createRideDto.destinationLng = this.AUBH_LNG;
+      createRideDto.destination = 'AUBH'; // Normalize to uppercase
     }
 
     // Calculate distance using Haversine formula

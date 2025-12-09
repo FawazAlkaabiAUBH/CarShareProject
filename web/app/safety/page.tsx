@@ -4,9 +4,8 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Phone, Shield, AlertCircle } from 'lucide-react';
 
 const EMERGENCY_CONTACTS = [
-  { id: 1, name: 'Campus Security', phone: '+973 1234 5678', type: 'CAMPUS_SECURITY' },
-  { id: 2, name: 'Bahrain Police', phone: '999', type: 'POLICE' },
-  { id: 3, name: 'Ambulance', phone: '999', type: 'AMBULANCE' },
+  { id: 1, name: 'Campus Security', phone: '+973 7799 9997', type: 'CAMPUS_SECURITY' },
+  { id: 2, name: 'Emergency Hotline', phone: '999', type: 'EMERGENCY' },
 ];
 
 export default function SafetyPage() {
@@ -39,7 +38,7 @@ export default function SafetyPage() {
           <p className="text-[#99A1AF]">24/7 Support Available</p>
         </div>
 
-        {/* Emergency SOS */}
+        {/* Emergency SOS
         <div className="bg-gradient-to-br from-red-600/20 to-red-900/20 border-2 border-red-500/50 rounded-[27px] p-6 text-center">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-white mb-2">Emergency SOS</h3>
@@ -48,6 +47,7 @@ export default function SafetyPage() {
             Hold for Emergency
           </button>
         </div>
+        */}
 
         {/* Emergency Contacts */}
         <div>

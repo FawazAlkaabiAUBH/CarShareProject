@@ -63,7 +63,7 @@ export default function DriverDashboard() {
           </div>
           <div className="flex-1">
             <h2 className="text-xl font-semibold text-white mb-1">
-              {user?.name || 'Ahmed Hassan'}
+              {user?.name || 'Ahmed Ali'}
             </h2>
             <div className="flex items-center gap-1">
               <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
