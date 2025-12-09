@@ -39,7 +39,7 @@ export default function DriverDashboard() {
       {/* Header */}
       <div className="px-6 pt-16 pb-6">
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-2xl font-semibold text-white">AUBH Carpool</h1>
+          <h1 className="text-2xl font-semibold text-white">CarShare</h1>
           <button
             onClick={() => {
               setRole('RIDER');
