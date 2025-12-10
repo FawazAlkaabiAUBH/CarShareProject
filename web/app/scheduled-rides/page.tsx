@@ -10,7 +10,7 @@ const MOCK_SCHEDULED_RIDES = [
     from: 'AUBH Campus',
     to: 'City Centre Mall',
     date: '2024-12-10',
-    time: '14:00',
+    time: '14:30',
     isRecurring: false,
     status: 'One-time',
   },
