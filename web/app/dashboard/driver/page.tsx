@@ -16,19 +16,55 @@ export default function DriverDashboard() {
   });
 
   useEffect(() => {
-    // TODO: Fetch driver stats from API
-    setStats({
-      totalRides: 47,
-      thisWeek: 3,
-      earned: '125.50',
-      rating: 4.9,
-    });
-  }, []);
+    const fetchDriverStats = async () => {
+      if (!user?.userId) return;
+
+      try {
+        // Fetch driver profile to get stats
+        const { driversApi, ridesApi, ratingsApi } = await import('@/lib/api');
+        
+        const [driverProfile, driverRides, ratingData] = await Promise.all([
+          driversApi.getDriverByUserId(user.userId),
+          ridesApi.getRidesByDriver(user.userId),
+          ratingsApi.getUserAverageRating(user.userId),
+        ]);
+
+        // Calculate this week's rides
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        const thisWeekRides = driverRides.filter(
+          ride => new Date(ride.createdAt || '') > oneWeekAgo && ride.rideStatus === 'COMPLETED'
+        );
+
+        // Calculate total earnings from completed rides
+        const totalEarnings = driverRides
+          .filter(ride => ride.rideStatus === 'COMPLETED')
+          .reduce((sum, ride) => sum + (ride.driverEarnings || 0), 0);
+
+        setStats({
+          totalRides: driverProfile.totalRides || 0,
+          thisWeek: thisWeekRides.length,
+          earned: totalEarnings.toFixed(2),
+          rating: ratingData.averageRating || driverProfile.rating || 5.0,
+        });
+      } catch (error) {
+        console.error('Failed to fetch driver stats:', error);
+        // Set default values on error
+        setStats({
+          totalRides: 0,
+          thisWeek: 0,
+          earned: '0.00',
+          rating: 5.0,
+        });
+      }
+    };
+
+    fetchDriverStats();
+  }, [user?.userId]);
 
   const quickActions = [
     { icon: Car, label: 'Post Ride', route: '/driver/post-ride', color: 'from-[#DC143C] to-[#8B0000]' },
-    { icon: Calendar, label: 'Schedule', route: '/scheduled-rides', color: 'from-blue-600 to-blue-800' },
-    { icon: History, label: 'History', route: '/ride-history', color: 'from-purple-600 to-purple-800' },
+    { icon: History, label: 'Posted Rides', route: '/ride-history', color: 'from-purple-600 to-purple-800' },
     { icon: Shield, label: 'Safety', route: '/safety', color: 'from-green-600 to-green-800' },
     { icon: MessageCircle, label: 'Chat', route: '/chat', color: 'from-orange-600 to-orange-800' },
     { icon: User, label: 'Profile', route: '/profile', color: 'from-gray-600 to-gray-800' },

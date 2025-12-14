@@ -16,19 +16,55 @@ export default function RiderDashboard() {
   });
 
   useEffect(() => {
-    // TODO: Fetch rider stats from API
-    setStats({
-      totalRides: 32,
-      thisMonth: 5,
-      spent: '42.00',
-      rating: 4.9,
-    });
-  }, []);
+    const fetchRiderStats = async () => {
+      if (!user?.userId) return;
+
+      try {
+        // Fetch rider profile and bookings
+        const { ridersApi, bookingsApi, ratingsApi } = await import('@/lib/api');
+        
+        const [riderProfile, myBookings, ratingData] = await Promise.all([
+          ridersApi.getRiderByUserId(user.userId),
+          bookingsApi.getMyBookings(),
+          ratingsApi.getUserAverageRating(user.userId),
+        ]);
+
+        // Calculate this month's rides
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        const thisMonthBookings = myBookings.filter(
+          booking => new Date(booking.createdAt || '') > oneMonthAgo && booking.bookingStatus === 'COMPLETED'
+        );
+
+        // Calculate total spent from completed bookings
+        const totalSpent = myBookings
+          .filter(booking => booking.bookingStatus === 'COMPLETED')
+          .reduce((sum, booking) => sum + (booking.totalAmount || 0), 0);
+
+        setStats({
+          totalRides: riderProfile.totalRides || 0,
+          thisMonth: thisMonthBookings.length,
+          spent: totalSpent.toFixed(2),
+          rating: ratingData.averageRating || riderProfile.rating || 5.0,
+        });
+      } catch (error) {
+        console.error('Failed to fetch rider stats:', error);
+        // Set default values on error
+        setStats({
+          totalRides: 0,
+          thisMonth: 0,
+          spent: '0.00',
+          rating: 5.0,
+        });
+      }
+    };
+
+    fetchRiderStats();
+  }, [user?.userId]);
 
   const quickActions = [
     { icon: Search, label: 'Find Ride', route: '/rider/ride-request', color: 'from-[#DC143C] to-[#8B0000]' },
-    { icon: Calendar, label: 'Schedule', route: '/scheduled-rides', color: 'from-blue-600 to-blue-800' },
-    { icon: History, label: 'History', route: '/ride-history', color: 'from-purple-600 to-purple-800' },
+    { icon: History, label: 'My Rides', route: '/ride-history', color: 'from-purple-600 to-purple-800' },
     { icon: Shield, label: 'Safety', route: '/safety', color: 'from-green-600 to-green-800' },
     { icon: MessageCircle, label: 'Chat', route: '/chat', color: 'from-orange-600 to-orange-800' },
     { icon: User, label: 'Profile', route: '/profile', color: 'from-gray-600 to-gray-800' },

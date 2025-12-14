@@ -46,3 +46,12 @@ export const getHello = async () => {
   const response = await apiClient.get('/');
   return response.data;
 };
+
+// Re-export all API services from api subdirectory
+export { ridesApi } from './api/rides';
+export { bookingsApi } from './api/bookings';
+export { ratingsApi } from './api/ratings';
+export { notificationsApi } from './api/notifications';
+export { driversApi } from './api/drivers';
+export { ridersApi } from './api/riders';
+export { vehiclesApi } from './api/vehicles';
