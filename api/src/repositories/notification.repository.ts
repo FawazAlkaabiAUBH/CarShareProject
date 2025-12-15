@@ -16,8 +16,8 @@ export class NotificationRepository {
   save(notification: Partial<Notification>): Notification {
     const stmt = this.db.prepare(`
       INSERT INTO notifications (
-        userId, type, title, message, 
-        relatedEntityType, relatedEntityId, 
+        userId, type, title, body, 
+        relatedRideId, relatedUserId, 
         isRead, createdAt
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
@@ -26,9 +26,9 @@ export class NotificationRepository {
       notification.userId,
       notification.type,
       notification.title,
-      notification.message,
-      notification.relatedEntityType || null,
-      notification.relatedEntityId || null,
+      notification.body,
+      notification.relatedRideId || null,
+      notification.relatedUserId || null,
       notification.isRead ? 1 : 0,
       notification.createdAt?.toISOString() || new Date().toISOString()
     );
@@ -135,9 +135,9 @@ export class NotificationRepository {
       userId: row.userId,
       type: row.type,
       title: row.title,
-      message: row.message,
-      relatedEntityType: row.relatedEntityType,
-      relatedEntityId: row.relatedEntityId,
+      body: row.body,
+      relatedRideId: row.relatedRideId,
+      relatedUserId: row.relatedUserId,
       isRead: row.isRead === 1,
       createdAt: new Date(row.createdAt),
     });

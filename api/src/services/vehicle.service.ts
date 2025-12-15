@@ -30,7 +30,7 @@ export class VehicleService {
       model: dto.model,
       year: dto.year,
       color: dto.color,
-      plateNumber: dto.plateNumber,
+      licensePlate: dto.licensePlate,
       vehicleDocument: dto.vehicleDocument,
       isActive: true,
     });

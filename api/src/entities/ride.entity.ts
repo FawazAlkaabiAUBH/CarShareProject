@@ -12,7 +12,7 @@ export class Ride {
   estimatedDuration?: number; // Estimated duration in minutes
   departureTime: Date;
   arrivalTime: Date | null;
-  rideStatus: 'AVAILABLE' | 'BOOKED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+  rideStatus: 'OPEN' | 'AVAILABLE' | 'BOOKED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   baseFare: number;
   distanceFare: number;
   serviceFee: number;
@@ -22,6 +22,8 @@ export class Ride {
   availableSeats: number;
   totalSeats: number;
   safetyCode?: string; // 4-digit safety code
+  isRecurring: boolean; // Whether this is a scheduled/recurring ride
+  recurringSchedule?: string; // JSON string with recurring details (days, times)
   createdAt: Date;
   updatedAt: Date;
 

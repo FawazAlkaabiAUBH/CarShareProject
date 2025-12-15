@@ -1,9 +1,9 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional, IsIn } from 'class-validator';
 
 export class CreateUserDto {
   @IsNotEmpty()
   @IsString()
-  fullName: string;
+  name: string;
 
   @IsNotEmpty()
   @IsEmail()
@@ -21,6 +21,14 @@ export class CreateUserDto {
   })
   phoneNumber: string;
 
+  @IsNotEmpty()
+  @IsString()
+  aubhId: string; // AUBH student/staff ID - required
+
+  @IsNotEmpty()
+  @IsIn(['MALE', 'FEMALE'])
+  gender: 'MALE' | 'FEMALE'; // Gender - required
+
   @IsOptional()
   @IsString()
   @Matches(/^\d{8}$/, {
@@ -35,7 +43,7 @@ export class CreateUserDto {
 export class UpdateUserDto {
   @IsOptional()
   @IsString()
-  fullName?: string;
+  name?: string;
 
   @IsOptional()
   @IsEmail()
@@ -50,6 +58,14 @@ export class UpdateUserDto {
 
   @IsOptional()
   @IsString()
+  aubhId?: string;
+
+  @IsOptional()
+  @IsIn(['MALE', 'FEMALE'])
+  gender?: 'MALE' | 'FEMALE';
+
+  @IsOptional()
+  @IsString()
   @Matches(/^\d{8}$/, {
     message: 'BenefitPay phone must be 8 digits',
   })
@@ -59,4 +75,23 @@ export class UpdateUserDto {
   @IsString()
   @MinLength(6)
   password?: string;
+}
+
+export class VerifyCodeDto {
+  @IsNotEmpty()
+  @IsString()
+  emailOrPhone: string;
+
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^\d{6}$/, {
+    message: 'Verification code must be 6 digits',
+  })
+  code: string;
+}
+
+export class SendVerificationDto {
+  @IsNotEmpty()
+  @IsString()
+  emailOrPhone: string;
 }

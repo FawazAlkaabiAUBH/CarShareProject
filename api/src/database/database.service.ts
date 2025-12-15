@@ -42,13 +42,18 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     this.db.exec(`
       CREATE TABLE users (
         userId INTEGER PRIMARY KEY AUTOINCREMENT,
-        fullName TEXT NOT NULL,
+        name TEXT NOT NULL,
         email TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL,
         phoneNumber TEXT NOT NULL,
+        aubhId TEXT,
+        gender TEXT CHECK(gender IN ('MALE', 'FEMALE')),
         benefitPayPhone TEXT,
         role TEXT NOT NULL DEFAULT 'USER' CHECK(role IN ('USER', 'ADMIN')),
         accountStatus TEXT NOT NULL CHECK(accountStatus IN ('ACTIVE', 'INACTIVE', 'SUSPENDED')),
+        verificationCode TEXT,
+        verificationCodeExpiry TEXT,
+        isVerified INTEGER DEFAULT 0,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         lastLogin TEXT
@@ -82,7 +87,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         model TEXT NOT NULL,
         year INTEGER NOT NULL,
         color TEXT NOT NULL,
-        plateNumber TEXT NOT NULL UNIQUE,
+        licensePlate TEXT NOT NULL UNIQUE,
         vehicleDocument TEXT,
         isActive INTEGER DEFAULT 1,
         createdAt TEXT NOT NULL,
@@ -120,7 +125,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         estimatedDuration INTEGER,
         departureTime TEXT NOT NULL,
         arrivalTime TEXT,
-        rideStatus TEXT NOT NULL CHECK(rideStatus IN ('AVAILABLE', 'BOOKED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+        rideStatus TEXT NOT NULL CHECK(rideStatus IN ('OPEN', 'AVAILABLE', 'BOOKED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
         baseFare REAL NOT NULL,
         distanceFare REAL NOT NULL,
         serviceFee REAL NOT NULL,
@@ -130,6 +135,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
         availableSeats INTEGER NOT NULL,
         totalSeats INTEGER NOT NULL,
         safetyCode TEXT,
+        isRecurring INTEGER DEFAULT 0,
+        recurringSchedule TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
         FOREIGN KEY (userId) REFERENCES drivers(userId) ON DELETE CASCADE,
@@ -167,17 +174,17 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       CREATE TABLE ratings (
         ratingId INTEGER PRIMARY KEY AUTOINCREMENT,
         rideId INTEGER NOT NULL,
-        raterUserId INTEGER NOT NULL,
-        ratedUserId INTEGER NOT NULL,
+        raterId INTEGER NOT NULL,
+        rateeId INTEGER NOT NULL,
         score INTEGER NOT NULL CHECK(score >= 1 AND score <= 5),
         comment TEXT,
         isFlagged INTEGER DEFAULT 0,
         feedbackTags TEXT,
         createdAt TEXT NOT NULL,
-        updatedAt TEXT NOT NULL,
+        updatedAt TEXT,
         FOREIGN KEY (rideId) REFERENCES rides(rideId) ON DELETE CASCADE,
-        FOREIGN KEY (raterUserId) REFERENCES users(userId) ON DELETE CASCADE,
-        FOREIGN KEY (ratedUserId) REFERENCES users(userId) ON DELETE CASCADE
+        FOREIGN KEY (raterId) REFERENCES users(userId) ON DELETE CASCADE,
+        FOREIGN KEY (rateeId) REFERENCES users(userId) ON DELETE CASCADE
       )
     `);
 
@@ -186,11 +193,11 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       CREATE TABLE notifications (
         notificationId INTEGER PRIMARY KEY AUTOINCREMENT,
         userId INTEGER NOT NULL,
-        type TEXT NOT NULL CHECK(type IN ('BOOKING_REQUEST', 'BOOKING_CONFIRMED', 'BOOKING_CANCELLED', 'RIDE_STARTED', 'RIDE_COMPLETED', 'DRIVER_VERIFIED', 'SYSTEM')),
+        type TEXT NOT NULL CHECK(type IN ('MATCH', 'PAYMENT', 'MESSAGE', 'RIDE_COMPLETED', 'RIDE_CANCELLED', 'SYSTEM')),
         title TEXT NOT NULL,
-        message TEXT NOT NULL,
-        relatedEntityType TEXT,
-        relatedEntityId INTEGER,
+        body TEXT NOT NULL,
+        relatedRideId INTEGER,
+        relatedUserId INTEGER,
         isRead INTEGER DEFAULT 0,
         createdAt TEXT NOT NULL,
         FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE
@@ -255,14 +262,14 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     // Seed users (role is now USER or ADMIN, not DRIVER/RIDER)
     const insertUser = this.db.prepare(`
-      INSERT INTO users (fullName, email, password, phoneNumber, benefitPayPhone, role, accountStatus, createdAt, updatedAt, lastLogin)
+      INSERT INTO users (name, email, password, phoneNumber, benefitPayPhone, role, accountStatus, createdAt, updatedAt, lastLogin)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    // User 1: Ahmed - Admin and Driver
+    // User 1: Fawaz - Admin and Driver
     insertUser.run(
-      'Ahmed Ali',
-      'ahmed@aubh.edu.bh',
+      'Fawaz Alkaabi',
+      'f2300133@aubh.edu.bh',
       hashedPassword,
       '+973-1234-5678',
       '12345678',
@@ -276,7 +283,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     // User 2: Fatima - Regular user (rider)
     insertUser.run(
       'Fatima Hassan',
-      'fatima@aubh.edu.bh',
+      'a99999@aubh.edu.bh',
       hashedPassword,
       '+973-2345-6789',
       '23456789',
@@ -290,7 +297,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     // User 3: Mohammed - Regular user and driver
     insertUser.run(
       'Mohammed Khalid',
-      'mohammed@aubh.edu.bh',
+      'f2499999@aubh.edu.bh',
       hashedPassword,
       '+973-3456-7890',
       '34567890',
@@ -300,20 +307,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       now,
       now,
     );
-    
-    // User 4: Fawaz - Driver
-    insertUser.run(
-      'Fawaz Alkaabi',
-      'fawaz@aubh.edu.bh',
-      hashedPassword,
-      '+973-4567-8901',
-      '45678901',
-      'USER',
-      'ACTIVE',
-      now,
-      now,
-      now,
-    );
+
 
     // Seed drivers (simplified - using userId directly)
     const insertDriver = this.db.prepare(`
@@ -321,19 +315,19 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
-    insertDriver.run(1, 'DL12345', 1, now, 1, 4.5, 12, now, now); // Ahmed - verified by himself (admin)
-    insertDriver.run(3, 'DL67890', 1, now, 1, 4.8, 8, now, now); // Mohammed - verified by Ahmed
-    insertDriver.run(4, 'DL45678', 1, now, 1, 4.6, 5, now, now); // Fawaz - verified by Ahmed
+    insertDriver.run(1, 'DL12345', 1, now, 1, 4.5, 12, now, now); // Fawaz - verified by himself (admin)
+    insertDriver.run(3, 'DL67890', 1, now, 1, 4.8, 8, now, now); // Mohammed - verified by Fawaz
+    // insertDriver.run(4, 'DL45678', 1, now, 1, 4.6, 5, now, now); // Fawaz - verified by Ahmed
 
     // Seed vehicles
     const insertVehicle = this.db.prepare(`
-      INSERT INTO vehicles (userId, make, model, year, color, plateNumber, isActive, createdAt, updatedAt)
+      INSERT INTO vehicles (userId, make, model, year, color, licensePlate, isActive, createdAt, updatedAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     insertVehicle.run(1, 'Toyota', 'Camry', 2020, 'White', 'BH-12345', 1, now, now);
     insertVehicle.run(3, 'Honda', 'Accord', 2019, 'Black', 'BH-67890', 1, now, now);
-    insertVehicle.run(4, 'Nissan', 'Altima', 2021, 'Silver', 'BH-45678', 1, now, now);
+    // insertVehicle.run(4, 'Nissan', 'Altima', 2021, 'Silver', 'BH-45678', 1, now, now);
 
     // Seed riders (everyone can be a rider)
     const insertRider = this.db.prepare(`
@@ -344,7 +338,7 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     insertRider.run(1, 'Manama City', 5.0, 3, now, now); // Ahmed
     insertRider.run(2, 'Seef District', 4.7, 5, now, now); // Fatima
     insertRider.run(3, 'Riffa', 5.0, 2, now, now); // Mohammed
-    insertRider.run(4, 'Muharraq', 4.9, 4, now, now); // Fawaz
+    // insertRider.run(4, 'Muharraq', 4.9, 4, now, now); // Fawaz
 
     // Helper function to generate 4-digit safety code
     const generateSafetyCode = () => {
@@ -405,8 +399,8 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
     
     const seefLat = 26.2361;
     const seefLng = 50.5339;
-    const aubhLat = 26.0667;
-    const aubhLng = 50.5577;
+    const aubhLat = 26.1008012;
+    const aubhLng = 50.5480834;
     const ride1Distance = calculateDistance(seefLat, seefLng, aubhLat, aubhLng);
     const ride1Fare = calculateFare(ride1Distance);
     
@@ -446,21 +440,19 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
       now, now
     );
 
-    // Ride 3: Muharraq to Seef Mall (Fawaz)
+    // Ride 3: Campus to Seef Mall (Mohammed)
     const nextWeek = new Date();
     nextWeek.setDate(nextWeek.getDate() + 7);
     nextWeek.setHours(10, 0, 0, 0);
-    
-    const muharraqLat = 26.2572;
-    const muharraqLng = 50.6117;
+
     const seefMallLat = 26.2361;
     const seefMallLng = 50.5339;
-    const ride3Distance = calculateDistance(muharraqLat, muharraqLng, seefMallLat, seefMallLng);
+    const ride3Distance = calculateDistance(aubhLat, aubhLng, seefMallLat, seefMallLng);
     const ride3Fare = calculateFare(ride3Distance);
     
     insertRide.run(
-      4, 3, 'Muharraq', 'Seef Mall',
-      muharraqLat, muharraqLng, seefMallLat, seefMallLng,
+      3, 2, 'AUBH Campus', 'Seef Mall',
+      aubhLat, aubhLng, seefMallLat, seefMallLng,
       Number(ride3Distance.toFixed(2)), 18,
       nextWeek.toISOString(), null,
       'AVAILABLE',
@@ -497,28 +489,28 @@ export class DatabaseService implements OnModuleInit, OnModuleDestroy {
 
     // Seed notifications
     const insertNotification = this.db.prepare(`
-      INSERT INTO notifications (userId, type, title, message, relatedEntityType, relatedEntityId, isRead, createdAt)
+      INSERT INTO notifications (userId, type, title, body, relatedRideId, relatedUserId, isRead, createdAt)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     // Notification for driver (Ahmed) about booking request
     insertNotification.run(
-      1, 'BOOKING_REQUEST',
+      1, 'MATCH',
       'New Booking Request',
       'Fatima Hassan has booked 1 seat for your ride from Seef District to AUBH Campus',
-      'booking', 1, 1, now
+      1, 2, 1, now
     );
 
     // Notification for rider (Fatima) about booking confirmation
     insertNotification.run(
-      2, 'BOOKING_CONFIRMED',
+      2, 'PAYMENT',
       'Booking Confirmed',
       'Your booking for the ride from Seef District to AUBH Campus has been confirmed',
-      'booking', 1, 0, now
+      1, null, 0, now
     );
 
     // Welcome notification for all users
-    for (let userId = 1; userId <= 4; userId++) {
+    for (let userId = 1; userId <= 3; userId++) {
       insertNotification.run(
         userId, 'SYSTEM',
         'Welcome to CarShare!',

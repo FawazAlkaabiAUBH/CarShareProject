@@ -1,4 +1,29 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, Min, Max } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsOptional, IsEnum, Min, Max, IsBoolean, Matches, ValidationArguments, registerDecorator, ValidationOptions } from 'class-validator';
+
+// Custom validator to ensure either origin or destination is AUBH
+function IsAUBHLocation(validationOptions?: ValidationOptions) {
+  return function (object: Object, propertyName: string) {
+    registerDecorator({
+      name: 'isAUBHLocation',
+      target: object.constructor,
+      propertyName: propertyName,
+      options: validationOptions,
+      validator: {
+        validate(value: any, args: ValidationArguments) {
+          const obj = args.object as any;
+          const origin = obj.origin?.toLowerCase().trim();
+          const destination = obj.destination?.toLowerCase().trim();
+          
+          // Check if either origin or destination is AUBH (case-insensitive)
+          return origin === 'aubh' || destination === 'aubh';
+        },
+        defaultMessage(args: ValidationArguments) {
+          return 'Either origin or destination must be AUBH';
+        }
+      }
+    });
+  };
+}
 
 export class CreateRideDto {
   @IsNotEmpty()
@@ -7,6 +32,7 @@ export class CreateRideDto {
 
   @IsNotEmpty()
   @IsString()
+  @IsAUBHLocation()
   origin: string;
 
   @IsNotEmpty()
@@ -50,6 +76,14 @@ export class CreateRideDto {
   @IsNumber()
   @Min(0)
   estimatedDuration?: number; // Optional, in minutes
+
+  @IsOptional()
+  @IsBoolean()
+  isRecurring?: boolean; // Whether this is a recurring/scheduled ride
+
+  @IsOptional()
+  @IsString()
+  recurringSchedule?: string; // JSON string with recurring details
 }
 
 export class UpdateRideDto {
@@ -111,4 +145,13 @@ export class UpdateRideDto {
     | 'IN_PROGRESS'
     | 'COMPLETED'
     | 'CANCELLED';
+}
+
+export class VerifySafetyCodeDto {
+  @IsNotEmpty()
+  @IsString()
+  @Matches(/^\d{4}$/, {
+    message: 'Safety code must be 4 digits',
+  })
+  safetyCode: string;
 }

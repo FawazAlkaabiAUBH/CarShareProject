@@ -39,14 +39,14 @@ export class RatingRepository {
     if (!rating.ratingId) {
       // Insert new rating
       const stmt = this.db.getDatabase().prepare(`
-        INSERT INTO ratings (rideId, raterUserId, ratedUserId, score, comment, isFlagged, feedbackTags, createdAt, updatedAt)
+        INSERT INTO ratings (rideId, raterId, rateeId, score, comment, isFlagged, feedbackTags, createdAt, updatedAt)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
         rating.rideId,
-        rating.raterUserId!,
-        rating.ratedUserId!,
+        rating.raterId!,
+        rating.rateeId!,
         rating.score,
         rating.comment ?? null,
         rating.isFlagged ?? false ? 1 : 0,
@@ -60,14 +60,14 @@ export class RatingRepository {
       // Update existing rating
       const stmt = this.db.getDatabase().prepare(`
         UPDATE ratings
-        SET rideId = ?, raterUserId = ?, ratedUserId = ?, score = ?, comment = ?, isFlagged = ?, feedbackTags = ?, updatedAt = ?
+        SET rideId = ?, raterId = ?, rateeId = ?, score = ?, comment = ?, isFlagged = ?, feedbackTags = ?, updatedAt = ?
         WHERE ratingId = ?
       `);
 
       stmt.run(
         rating.rideId,
-        rating.raterUserId!,
-        rating.ratedUserId!,
+        rating.raterId!,
+        rating.rateeId!,
         rating.score,
         rating.comment ?? null,
         rating.isFlagged! ? 1 : 0,
@@ -112,7 +112,7 @@ export class RatingRepository {
   findByUser(userId: number): Rating[] {
     const rows = this.db
       .getDatabase()
-      .prepare('SELECT * FROM ratings WHERE raterUserId = ?')
+      .prepare('SELECT * FROM ratings WHERE raterId = ?')
       .all(userId) as any[];
 
     return rows.map((row) => this.mapToEntity(row));
@@ -121,7 +121,7 @@ export class RatingRepository {
   findForUser(userId: number): Rating[] {
     const rows = this.db
       .getDatabase()
-      .prepare('SELECT * FROM ratings WHERE ratedUserId = ?')
+      .prepare('SELECT * FROM ratings WHERE rateeId = ?')
       .all(userId) as any[];
 
     return rows.map((row) => this.mapToEntity(row));
@@ -130,7 +130,7 @@ export class RatingRepository {
   getAverageForUser(userId: number): number {
     const result = this.db
       .getDatabase()
-      .prepare('SELECT AVG(score) as avg FROM ratings WHERE ratedUserId = ?')
+      .prepare('SELECT AVG(score) as avg FROM ratings WHERE rateeId = ?')
       .get(userId) as any;
 
     return result?.avg || 0;
@@ -140,14 +140,14 @@ export class RatingRepository {
     return new Rating({
       ratingId: row.ratingId,
       rideId: row.rideId,
-      raterUserId: row.raterUserId,
-      ratedUserId: row.ratedUserId,
+      raterId: row.raterId,
+      rateeId: row.rateeId,
       score: row.score,
       comment: row.comment,
       isFlagged: row.isFlagged === 1,
-      feedbackTags: row.feedbackTags ? JSON.parse(row.feedbackTags) : [],
+      feedbackTags: row.feedbackTags ? JSON.parse(row.feedbackTags) : '[]',
       createdAt: new Date(row.createdAt),
-      updatedAt: new Date(row.updatedAt),
+      updatedAt: row.updatedAt ? new Date(row.updatedAt) : undefined,
     });
   }
 }

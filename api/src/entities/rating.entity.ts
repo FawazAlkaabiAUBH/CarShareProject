@@ -1,14 +1,14 @@
 export class Rating {
   ratingId: number;
   rideId: number;
-  raterUserId: number;
-  ratedUserId: number;
+  raterId: number;
+  rateeId: number;
   score: number; // 1-5
-  comment: string;
+  comment?: string;
   isFlagged: boolean;
-  feedbackTags: string[];
+  feedbackTags?: string;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt?: Date;
 
   constructor(partial: Partial<Rating>) {
     Object.assign(this, partial);

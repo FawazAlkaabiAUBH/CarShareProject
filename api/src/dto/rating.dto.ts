@@ -7,11 +7,11 @@ export class CreateRatingDto {
 
   @IsNotEmpty()
   @IsNumber()
-  riderId: number;
+  raterId: number;
 
   @IsNotEmpty()
   @IsNumber()
-  driverId: number;
+  rateeId: number;
 
   @IsNotEmpty()
   @IsNumber()
@@ -19,9 +19,9 @@ export class CreateRatingDto {
   @Max(5)
   score: number; // 1-5
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  comment: string;
+  comment?: string;
 
   @IsOptional()
   @IsArray()

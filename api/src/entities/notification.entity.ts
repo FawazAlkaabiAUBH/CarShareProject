@@ -1,18 +1,11 @@
 export class Notification {
   notificationId: number;
   userId: number;
-  type:
-    | 'BOOKING_REQUEST'
-    | 'BOOKING_CONFIRMED'
-    | 'BOOKING_CANCELLED'
-    | 'RIDE_STARTED'
-    | 'RIDE_COMPLETED'
-    | 'DRIVER_VERIFIED'
-    | 'SYSTEM';
+  type: 'MATCH' | 'PAYMENT' | 'MESSAGE' | 'RIDE_COMPLETED' | 'RIDE_CANCELLED' | 'SYSTEM';
   title: string;
-  message: string;
-  relatedEntityType?: string; // e.g., 'booking', 'ride'
-  relatedEntityId?: number;
+  body: string;
+  relatedRideId?: number;
+  relatedUserId?: number;
   isRead: boolean;
   createdAt: Date;
 

@@ -5,7 +5,7 @@ export class Vehicle {
   model: string;
   year: number;
   color: string;
-  plateNumber: string;
+  licensePlate: string;
   vehicleDocument?: string;
   isActive: boolean;
   createdAt: Date;

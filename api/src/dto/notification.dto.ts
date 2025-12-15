@@ -6,23 +6,8 @@ export class CreateNotificationDto {
   userId: number;
 
   @IsNotEmpty()
-  @IsEnum([
-    'BOOKING_REQUEST',
-    'BOOKING_CONFIRMED',
-    'BOOKING_CANCELLED',
-    'RIDE_STARTED',
-    'RIDE_COMPLETED',
-    'DRIVER_VERIFIED',
-    'SYSTEM',
-  ])
-  type:
-    | 'BOOKING_REQUEST'
-    | 'BOOKING_CONFIRMED'
-    | 'BOOKING_CANCELLED'
-    | 'RIDE_STARTED'
-    | 'RIDE_COMPLETED'
-    | 'DRIVER_VERIFIED'
-    | 'SYSTEM';
+  @IsEnum(['MATCH', 'PAYMENT', 'MESSAGE', 'RIDE_COMPLETED', 'RIDE_CANCELLED', 'SYSTEM'])
+  type: 'MATCH' | 'PAYMENT' | 'MESSAGE' | 'RIDE_COMPLETED' | 'RIDE_CANCELLED' | 'SYSTEM';
 
   @IsNotEmpty()
   @IsString()
@@ -30,15 +15,15 @@ export class CreateNotificationDto {
 
   @IsNotEmpty()
   @IsString()
-  message: string;
-
-  @IsOptional()
-  @IsString()
-  relatedEntityType?: string;
+  body: string;
 
   @IsOptional()
   @IsNumber()
-  relatedEntityId?: number;
+  relatedRideId?: number;
+
+  @IsOptional()
+  @IsNumber()
+  relatedUserId?: number;
 }
 
 export class MarkNotificationReadDto {

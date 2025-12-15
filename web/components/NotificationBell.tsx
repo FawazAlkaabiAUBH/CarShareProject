@@ -34,13 +34,11 @@ export default function NotificationBell() {
       await markAsRead(notification.notificationId);
     }
 
-    // Navigate if there's a related entity
-    if (notification.relatedEntityType && notification.relatedEntityId) {
-      if (notification.relatedEntityType === 'booking') {
-        router.push(`/booking/${notification.relatedEntityId}`);
-      } else if (notification.relatedEntityType === 'ride') {
-        router.push(`/ride/${notification.relatedEntityId}`);
-      }
+    // Navigate if there's a related ride or user
+    if (notification.relatedRideId) {
+      router.push(`/ride/${notification.relatedRideId}`);
+    } else if (notification.relatedUserId) {
+      router.push(`/profile/${notification.relatedUserId}`);
     }
 
     setIsOpen(false);
@@ -48,18 +46,16 @@ export default function NotificationBell() {
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
-      case 'BOOKING_REQUEST':
-        return '📬';
-      case 'BOOKING_CONFIRMED':
-        return '✅';
-      case 'BOOKING_CANCELLED':
-        return '❌';
-      case 'RIDE_STARTED':
-        return '🚗';
+      case 'MATCH':
+        return '🤝';
+      case 'PAYMENT':
+        return '💳';
+      case 'MESSAGE':
+        return '💬';
       case 'RIDE_COMPLETED':
         return '🏁';
-      case 'DRIVER_VERIFIED':
-        return '✓';
+      case 'RIDE_CANCELLED':
+        return '❌';
       case 'SYSTEM':
         return 'ℹ️';
       default:
@@ -220,14 +216,14 @@ export default function NotificationBell() {
                   style={{
                     padding: spacing.lg,
                     borderBottom: `1px solid ${colors.border.default}`,
-                    cursor: notification.relatedEntityId ? 'pointer' : 'default',
+                    cursor: (notification.relatedRideId || notification.relatedUserId) ? 'pointer' : 'default',
                     background: notification.isRead
                       ? 'transparent'
                       : 'rgba(220, 20, 60, 0.05)',
                     transition: 'background 0.2s',
                   }}
                   onMouseEnter={(e) => {
-                    if (notification.relatedEntityId) {
+                    if (notification.relatedRideId || notification.relatedUserId) {
                       e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
                     }
                   }}
@@ -290,7 +286,7 @@ export default function NotificationBell() {
                           WebkitBoxOrient: 'vertical',
                         }}
                       >
-                        {notification.message}
+                        {notification.body}
                       </p>
                       <span
                         style={{

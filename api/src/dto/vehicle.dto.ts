@@ -21,7 +21,7 @@ export class CreateVehicleDto {
 
   @IsNotEmpty()
   @IsString()
-  plateNumber: string;
+  licensePlate: string;
 
   @IsOptional()
   @IsString()
@@ -49,7 +49,7 @@ export class UpdateVehicleDto {
 
   @IsOptional()
   @IsString()
-  plateNumber?: string;
+  licensePlate?: string;
 
   @IsOptional()
   @IsString()

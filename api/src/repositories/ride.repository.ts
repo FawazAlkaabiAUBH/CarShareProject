@@ -26,7 +26,7 @@ export class RideRepository {
 
   findAvailable(origin?: string, destination?: string, at?: Date, startDate?: Date, endDate?: Date): any[] {
     let query = `
-      SELECT r.*, u.fullName as driverName, u.phoneNumber as driverPhone
+      SELECT r.*, u.name as driverName, u.phoneNumber as driverPhone
       FROM rides r
       LEFT JOIN users u ON r.userId = u.userId
       WHERE r.rideStatus = 'AVAILABLE' AND r.availableSeats > 0
@@ -80,9 +80,10 @@ export class RideRepository {
           distance, estimatedDuration, departureTime, arrivalTime,
           rideStatus, baseFare, distanceFare, serviceFee, totalFare, driverEarnings,
           farePerSeat, totalSeats, availableSeats, safetyCode,
+          isRecurring, recurringSchedule,
           createdAt, updatedAt
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       const info = stmt.run(
@@ -114,6 +115,8 @@ export class RideRepository {
         ride.totalSeats,
         ride.availableSeats ?? ride.totalSeats,
         ride.safetyCode || null,
+        ride.isRecurring ? 1 : 0,
+        ride.recurringSchedule || null,
         now,
         now,
       );
@@ -127,7 +130,8 @@ export class RideRepository {
             originLat = ?, originLng = ?, destinationLat = ?, destinationLng = ?,
             distance = ?, estimatedDuration = ?, departureTime = ?, arrivalTime = ?,
             rideStatus = ?, baseFare = ?, distanceFare = ?, serviceFee = ?, totalFare = ?, driverEarnings = ?,
-            farePerSeat = ?, totalSeats = ?, availableSeats = ?, safetyCode = ?, updatedAt = ?
+            farePerSeat = ?, totalSeats = ?, availableSeats = ?, safetyCode = ?,
+            isRecurring = ?, recurringSchedule = ?, updatedAt = ?
         WHERE rideId = ?
       `);
 
@@ -160,6 +164,8 @@ export class RideRepository {
         ride.totalSeats,
         ride.availableSeats,
         ride.safetyCode || null,
+        ride.isRecurring ? 1 : 0,
+        ride.recurringSchedule || null,
         now,
         ride.rideId,
       );
@@ -250,6 +256,8 @@ export class RideRepository {
       totalSeats: row.totalSeats,
       availableSeats: row.availableSeats,
       safetyCode: row.safetyCode,
+      isRecurring: Boolean(row.isRecurring),
+      recurringSchedule: row.recurringSchedule,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt),
     });

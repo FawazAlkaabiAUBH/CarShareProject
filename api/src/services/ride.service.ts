@@ -17,6 +17,10 @@ export class RideService {
     private readonly notificationService: NotificationService,
   ) {}
 
+  // AUBH coordinates
+  private readonly AUBH_LAT = 26.1008012;
+  private readonly AUBH_LNG = 50.5480834;
+
   createRideListing(createRideDto: CreateRideDto, userId: number): Ride {
     // Verify the user is actually registered as a driver
     const driver = this.driverRepository.findByUserId(userId);
@@ -41,6 +45,31 @@ export class RideService {
 
     if (!vehicle.isActive) {
       throw new BadRequestException('Cannot create ride with inactive vehicle');
+    }
+
+    // Validate AUBH requirement and auto-set coordinates
+    const originIsAUBH = createRideDto.origin.toLowerCase().trim() === 'aubh';
+    const destinationIsAUBH = createRideDto.destination.toLowerCase().trim() === 'aubh';
+
+    if (!originIsAUBH && !destinationIsAUBH) {
+      throw new BadRequestException('Either origin or destination must be AUBH');
+    }
+
+    if (originIsAUBH && destinationIsAUBH) {
+      throw new BadRequestException('Origin and destination cannot both be AUBH');
+    }
+
+    // Auto-set AUBH coordinates
+    if (originIsAUBH) {
+      createRideDto.originLat = this.AUBH_LAT;
+      createRideDto.originLng = this.AUBH_LNG;
+      createRideDto.origin = 'AUBH'; // Normalize to uppercase
+    }
+
+    if (destinationIsAUBH) {
+      createRideDto.destinationLat = this.AUBH_LAT;
+      createRideDto.destinationLng = this.AUBH_LNG;
+      createRideDto.destination = 'AUBH'; // Normalize to uppercase
     }
 
     // Calculate distance using Haversine formula
@@ -79,6 +108,8 @@ export class RideService {
       availableSeats: createRideDto.totalSeats,
       safetyCode,
       rideStatus: 'AVAILABLE',
+      isRecurring: createRideDto.isRecurring || false,
+      recurringSchedule: createRideDto.recurringSchedule,
     });
 
     // Increment driver's total rides
@@ -217,6 +248,24 @@ export class RideService {
     ride.arrivalTime = new Date();
     ride.rideStatus = 'COMPLETED';
     return this.rideRepository.save(ride);
+  }
+
+  verifySafetyCode(rideId: number, safetyCode: string, userId: number) {
+    const ride = this.rideRepository.findById(rideId);
+    if (!ride) {
+      throw new NotFoundException(`Ride with ID ${rideId} not found`);
+    }
+
+    // Check if the provided code matches
+    if (ride.safetyCode !== safetyCode) {
+      throw new BadRequestException('Invalid safety code');
+    }
+
+    return {
+      verified: true,
+      message: 'Safety code verified successfully',
+      rideId: ride.rideId,
+    };
   }
 
   getAvailableRides(origin?: string, destination?: string, startDate?: Date, endDate?: Date): Ride[] {

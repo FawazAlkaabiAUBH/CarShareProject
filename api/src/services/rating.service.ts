@@ -13,7 +13,12 @@ export class RatingService {
       throw new Error('Rating score must be between 1 and 5');
     }
 
-    return this.ratingRepository.save(createRatingDto);
+    const ratingData = {
+      ...createRatingDto,
+      feedbackTags: createRatingDto.feedbackTags ? JSON.stringify(createRatingDto.feedbackTags) : undefined,
+    };
+
+    return this.ratingRepository.save(ratingData as any);
   }
 
   updateRating(ratingId: number, updateRatingDto: UpdateRatingDto): Rating {
@@ -26,7 +31,12 @@ export class RatingService {
       throw new Error('Rating score must be between 1 and 5');
     }
 
-    return this.ratingRepository.save({ ...rating, ...updateRatingDto });
+    const updateData = {
+      ...updateRatingDto,
+      feedbackTags: updateRatingDto.feedbackTags ? JSON.stringify(updateRatingDto.feedbackTags) : undefined,
+    };
+
+    return this.ratingRepository.save({ ...rating, ...updateData } as any);
   }
 
   deleteRating(ratingId: number): void {

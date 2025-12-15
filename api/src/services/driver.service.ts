@@ -45,7 +45,7 @@ export class DriverService {
       return {
         ...driver,
         user: user ? {
-          fullName: user.fullName,
+          name: user.name,
           email: user.email,
           phoneNumber: user.phoneNumber,
         } : null,
