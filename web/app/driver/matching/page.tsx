@@ -13,63 +13,20 @@ function MatchingContent() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchMatches = async () => {
-      if (!rideId) {
-        router.push('/dashboard/driver');
-        return;
-      }
+    // TODO: Fetch matches from API based on rideId
+    // Mock data for now
+    setTimeout(() => {
+      setMatches([
+        { id: 1, name: 'Fatima Hassan', rating: 4.9, origin: 'AUBH Campus', destination: 'City Centre' },
+        { id: 2, name: 'Mohammed Hassan', rating: 4.7, origin: 'Road 101 House 340 Manama Bahrain', destination: 'Main Entrance' },
+      ]);
+      setLoading(false);
+    }, 1500);
+  }, [rideId]);
 
-      try {
-        const { bookingsApi, ridesApi } = await import('@/lib/api');
-        
-        // Get the ride details
-        const ride = await ridesApi.getRideById(parseInt(rideId));
-        
-        // Get all bookings for this ride
-        const bookings = await bookingsApi.getBookingsForRide(parseInt(rideId));
-        
-        // Filter for pending bookings (rider requests)
-        const pendingBookings = bookings.filter(
-          booking => booking.bookingStatus === 'PENDING'
-        );
-
-        // Format matches with booking data
-        const formattedMatches = pendingBookings.map(booking => ({
-          id: booking.userId,
-          bookingId: booking.bookingId,
-          name: 'Rider',
-          rating: 5.0,
-          origin: ride.origin,
-          destination: ride.destination,
-          seatsBooked: booking.seatsBooked,
-        }));
-
-        setMatches(formattedMatches);
-        setLoading(false);
-      } catch (error) {
-        console.error('Failed to fetch matches:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchMatches();
-  }, [rideId, router]);
-
-  const handleAcceptRider = async (riderId: number, bookingId: number) => {
-    try {
-      const { bookingsApi } = await import('@/lib/api');
-      
-      // Update booking status to CONFIRMED
-      await bookingsApi.updateBookingStatus(bookingId, {
-        status: 'CONFIRMED',
-      });
-
-      // Navigate to ride in progress
-      router.push(`/driver/ride-in-progress?rideId=${rideId}&riderId=${riderId}`);
-    } catch (error) {
-      console.error('Failed to accept rider:', error);
-      alert('Failed to accept rider. Please try again.');
-    }
+  const handleAcceptRider = (riderId: number) => {
+    // TODO: Accept rider via API
+    router.push(`/driver/ride-in-progress?rideId=${rideId}&riderId=${riderId}`);
   };
 
   const handleCancel = () => {
@@ -141,7 +98,7 @@ function MatchingContent() {
 
                 <div className="flex gap-3">
                   <Button
-                    onClick={() => handleAcceptRider(match.id, match.bookingId)}
+                    onClick={() => handleAcceptRider(match.id)}
                     className="flex-1 h-[54px] bg-gradient-to-b from-[#DC143C] to-[#8B0000] text-white rounded-[18px]"
                   >
                     Accept

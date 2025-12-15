@@ -1,31 +1,13 @@
-# AUBH CarShare 🚗
+# AUBH Car Share
 
-A full-stack carpooling platform for AUBH (American University of Bahrain) students, enabling safe and convenient ride-sharing to and from campus.
-
-## 🎉 Project Status
-
-✅ **PRODUCTION READY** - All features implemented and integrated!
-
-- Backend: NestJS with SQLite ✅
-- Frontend: Next.js 16 with React 19 ✅
-- API Integration: 100% Complete ✅
-- Documentation: Comprehensive ✅
-
-## 📋 Quick Links
-
-- 📚 [API Documentation](docs/Backend-Documentation.md)
-- 🔗 [Integration Report](docs/Frontend-Backend-Integration.md)
-- 💻 [Code Examples](docs/API-Integration-Examples.md)
-- 📖 [Quick Reference](docs/Quick-Reference.md)
-- ✅ [Deployment Checklist](docs/Deployment-Checklist.md)
+This project aims to allow students to easily share their rides with other colleagues to campus.
 
 ## Project Overview
 
 This is a full-stack monorepo with:
 - **Backend**: NestJS API (port 3000)
-- **Frontend**: Next.js 16 with React 19 & Tailwind CSS (port 3001)
+- **Frontend**: Next.js with React & Tailwind CSS (port 8000)
 - **Package Manager**: pnpm (workspace-based)
-- **Database**: SQLite with better-sqlite3
 
 ## Prerequisites
 

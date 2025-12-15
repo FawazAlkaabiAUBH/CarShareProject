@@ -25,25 +25,9 @@ function RideInProgressContent() {
     eta: '5 min',
   };
 
-  const handleArrived = async () => {
-    const bookingId = searchParams?.get('bookingId');
-    const rideId = searchParams?.get('rideId');
-    
-    if (!bookingId) {
-      router.push('/dashboard/rider');
-      return;
-    }
-
-    try {
-      const { bookingsApi } = await import('@/lib/api');
-      const booking = await bookingsApi.getBookingById(parseInt(bookingId));
-      
-      // Navigate to payment with booking details
-      router.push(`/payment-method?amount=${booking.totalAmount}&rideId=${rideId}&bookingId=${bookingId}`);
-    } catch (error) {
-      console.error('Failed to get booking details:', error);
-      alert('Failed to proceed to payment. Please try again.');
-    }
+  const handleArrived = () => {
+    // TODO: Update ride status via API
+    router.push('/payment-method?amount=3.40&rideId=123');
   };
 
   const handleEmergency = () => {

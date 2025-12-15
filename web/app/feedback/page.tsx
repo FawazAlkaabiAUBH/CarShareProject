@@ -10,7 +10,6 @@ export default function FeedbackPage() {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [selectedTips, setSelectedTips] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const QUICK_TIPS = [
     'Great driver',
@@ -26,37 +25,9 @@ export default function FeedbackPage() {
     );
   };
 
-  const handleSubmit = async () => {
-    if (rating === 0) return;
-
-    setLoading(true);
-    try {
-      const { ratingsApi } = await import('@/lib/api');
-      
-      // Get ride and driver info from URL params
-      const urlParams = new URLSearchParams(window.location.search);
-      const rideId = urlParams.get('rideId');
-      const driverId = urlParams.get('driverId');
-
-      if (!rideId || !driverId) {
-        throw new Error('Missing ride or driver information');
-      }
-
-      // Submit rating
-      await ratingsApi.createRating({
-        rideId: parseInt(rideId),
-        rateeId: parseInt(driverId),
-        score: rating,
-        comment: comment || undefined,
-        feedbackTags: selectedTips.length > 0 ? selectedTips.join(',') : undefined,
-      });
-
-      router.push('/dashboard/rider');
-    } catch (error) {
-      console.error('Failed to submit rating:', error);
-      alert('Failed to submit rating. Please try again.');
-      setLoading(false);
-    }
+  const handleSubmit = () => {
+    // TODO: Submit rating to API
+    router.push('/dashboard/rider');
   };
 
   return (
@@ -142,9 +113,9 @@ export default function FeedbackPage() {
           variant="primary"
           className="w-full"
           onClick={handleSubmit}
-          disabled={rating === 0 || loading}
+          disabled={rating === 0}
         >
-          {loading ? 'Submitting...' : 'Submit Rating'}
+          Submit Rating
         </Button>
 
         <button

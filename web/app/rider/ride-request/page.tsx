@@ -21,25 +21,13 @@ const AUBH_LOCATION: LocationCoordinates = {
 export default function RideRequestPage() {
   const router = useRouter();
   const [direction, setDirection] = useState<'from-aubh' | 'to-aubh'>('from-aubh'); // Default: coming from AUBH
-  
-  // Auto-set pickup time to current date and time
-  const getCurrentDateTime = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
   const [formData, setFormData] = useState<{
     userLocation: LocationCoordinates | null;
     pickupTime: string;
     passengers: number;
   }>({
     userLocation: null,
-    pickupTime: getCurrentDateTime(),
+    pickupTime: '',
     passengers: 1,
   });
   const [loading, setLoading] = useState(false);
@@ -201,7 +189,7 @@ export default function RideRequestPage() {
             </button>
           </div>
 
-          {/* Pickup Time - Auto-set to now, can be adjusted */}
+          {/* Pickup Time */}
           <div className="space-y-3">
             <label className="text-lg font-medium text-[#D1D5DC] flex items-center gap-2">
               <Clock className="w-5 h-5 text-[#DC143C]" />
@@ -214,7 +202,6 @@ export default function RideRequestPage() {
               className="w-full h-[54px] bg-[#1E2939] border-2 border-[#364153] rounded-[18px] px-4 text-white"
               required
             />
-            <p className="text-sm text-[#99A1AF] px-2">Automatically set to current time. Adjust if needed.</p>
           </div>
 
           {/* Number of Passengers */}

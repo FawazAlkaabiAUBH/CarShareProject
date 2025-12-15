@@ -23,30 +23,14 @@ function RideInProgressContent() {
     destination: 'City Centre Mall',
   };
 
-  const handleStartRide = async () => {
-    if (!rideId) return;
-    
-    try {
-      const { ridesApi } = await import('@/lib/api');
-      await ridesApi.startRide(parseInt(rideId));
-      setRideStatus('started');
-    } catch (error) {
-      console.error('Failed to start ride:', error);
-      alert('Failed to start ride. Please try again.');
-    }
+  const handleStartRide = () => {
+    setRideStatus('started');
+    // TODO: Update ride status via API
   };
 
-  const handleCompleteRide = async () => {
-    if (!rideId) return;
-    
-    try {
-      const { ridesApi } = await import('@/lib/api');
-      await ridesApi.completeRide(parseInt(rideId));
-      router.push(`/driver/fare-summary?rideId=${rideId}`);
-    } catch (error) {
-      console.error('Failed to complete ride:', error);
-      alert('Failed to complete ride. Please try again.');
-    }
+  const handleCompleteRide = () => {
+    // TODO: Complete ride via API
+    router.push(`/driver/fare-summary?rideId=${rideId}`);
   };
 
   const handleEmergency = () => {

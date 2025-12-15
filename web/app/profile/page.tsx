@@ -15,53 +15,13 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    const fetchUserStats = async () => {
-      if (!user?.userId) return;
-
-      try {
-        const { ratingsApi, driversApi, ridersApi } = await import('@/lib/api');
-        
-        // Fetch rating data
-        const ratingData = await ratingsApi.getUserAverageRating(user.userId);
-        
-        // Try to fetch driver profile first, then rider if driver doesn't exist
-        let totalRides = 0;
-        let verified = false;
-
-        try {
-          const driverProfile = await driversApi.getDriverByUserId(user.userId);
-          totalRides = driverProfile.totalRides || 0;
-          verified = driverProfile.isVerified || false;
-        } catch {
-          // Not a driver, try rider
-          try {
-            const riderProfile = await ridersApi.getRiderByUserId(user.userId);
-            totalRides = riderProfile.totalRides || 0;
-            verified = true; // Riders are considered verified if they exist
-          } catch {
-            // Neither driver nor rider yet
-            totalRides = 0;
-            verified = false;
-          }
-        }
-
-        setStats({
-          totalRides,
-          rating: ratingData.averageRating || 5.0,
-          verified,
-        });
-      } catch (error) {
-        console.error('Failed to fetch user stats:', error);
-        setStats({
-          totalRides: 0,
-          rating: 5.0,
-          verified: false,
-        });
-      }
-    };
-
-    fetchUserStats();
-  }, [user?.userId]);
+    // TODO: Fetch user stats
+    setStats({
+      totalRides: 47,
+      rating: 4.9,
+      verified: true,
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1A1D29] via-[#101828] to-[#1A1D29]">

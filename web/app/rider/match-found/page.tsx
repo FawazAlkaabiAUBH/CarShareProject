@@ -8,84 +8,34 @@ import { Button } from '@/components/ui/Button';
 function MatchFoundContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const rideId = searchParams?.get('rideId');
+  const driverId = searchParams?.get('driverId');
   const [loading, setLoading] = useState(false);
-  const [fetchingData, setFetchingData] = useState(true);
-  const [rideData, setRideData] = useState<any>(null);
 
-  useEffect(() => {
-    const fetchRideData = async () => {
-      if (!rideId) {
-        router.push('/rider/available-drivers');
-        return;
-      }
-
-      try {
-        const { ridesApi } = await import('@/lib/api');
-        const ride = await ridesApi.getRideById(parseInt(rideId));
-        setRideData(ride);
-      } catch (error) {
-        console.error('Failed to fetch ride data:', error);
-        alert('Failed to load ride information');
-        router.push('/rider/available-drivers');
-      } finally {
-        setFetchingData(false);
-      }
-    };
-
-    fetchRideData();
-  }, [rideId, router]);
+  const driverInfo = {
+    name: 'Fawaz Alkaabi',
+    phone: '+973-9876-5432',
+    rating: 4.9,
+    totalRides: 47,
+    car: 'Toyota Camry',
+    color: 'Silver',
+    plate: '12345',
+    origin: 'AUBH Campus',
+    destination: 'City Centre Mall',
+    fare: 3.40,
+    eta: '5 min',
+  };
 
   const handleConfirmBooking = async () => {
     setLoading(true);
-    
-    try {
-      const { bookingsApi } = await import('@/lib/api');
-      const paymentMethod = searchParams?.get('paymentMethod') as 'CASH' | 'BENEFITPAY' || 'CASH';
-      const seatsBooked = parseInt(searchParams?.get('seats') || '1');
-      
-      if (!rideId) {
-        throw new Error('Ride ID is required');
-      }
-
-      // Create booking
-      const booking = await bookingsApi.createBooking({
-        rideId: parseInt(rideId),
-        seatsBooked,
-        paymentMethod,
-        benefitPayPhone: paymentMethod === 'BENEFITPAY' 
-          ? localStorage.getItem('benefitPayPhone') || undefined 
-          : undefined,
-      });
-
-      // Navigate to ride in progress with booking info
-      router.push(`/rider/ride-in-progress?bookingId=${booking.bookingId}&rideId=${rideId}`);
-    } catch (error) {
-      console.error('Failed to create booking:', error);
-      alert('Failed to create booking. Please try again.');
-      setLoading(false);
-    }
+    // TODO: Create booking via API
+    setTimeout(() => {
+      router.push(`/rider/ride-in-progress?driverId=${driverId}`);
+    }, 1000);
   };
 
   const handleDecline = () => {
     router.push('/rider/available-drivers');
   };
-
-  if (fetchingData || !rideData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#1A1D29] via-[#101828] to-[#1A1D29] flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-[#DC143C] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  const driverName = rideData.driver?.name || 'Driver';
-  const driverRating = rideData.driver?.rating || 5.0;
-  const driverRides = rideData.driver?.totalRides || 0;
-  const carInfo = rideData.car ? `${rideData.car.make} ${rideData.car.model}` : 'Vehicle';
-  const carColor = rideData.car?.color || 'N/A';
-  const carPlate = rideData.car?.licensePlate || 'N/A';
-  const farePerSeat = rideData.farePerSeat || 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1A1D29] via-[#101828] to-[#1A1D29]">
@@ -118,18 +68,18 @@ function MatchFoundContent() {
         <div className="flex items-start gap-4 mb-4">
           <div className="w-16 h-16 bg-gradient-to-b from-[#DC143C] to-[#8B0000] rounded-full flex items-center justify-center">
             <span className="text-xl font-semibold text-white">
-              {driverName.charAt(0).toUpperCase()}
+              {driverInfo.name.charAt(0)}
             </span>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-medium text-white mb-1">{driverName}</h3>
+            <h3 className="text-lg font-medium text-white mb-1">{driverInfo.name}</h3>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
                 <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                <span className="text-white text-sm">{driverRating.toFixed(1)}</span>
+                <span className="text-white text-sm">{driverInfo.rating}</span>
               </div>
               <span className="text-[#99A1AF] text-sm">
-                {driverRides} rides
+                {driverInfo.totalRides} rides
               </span>
             </div>
           </div>
@@ -139,15 +89,15 @@ function MatchFoundContent() {
         <div className="p-4 bg-white/5 rounded-[12px] mb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#99A1AF] text-sm">Vehicle</span>
-            <span className="text-white font-medium">{carInfo}</span>
+            <span className="text-white font-medium">{driverInfo.car}</span>
           </div>
           <div className="flex items-center justify-between mb-2">
             <span className="text-[#99A1AF] text-sm">Color</span>
-            <span className="text-white">{carColor}</span>
+            <span className="text-white">{driverInfo.color}</span>
           </div>
           <div className="flex items-center justify-between">
             <span className="text-[#99A1AF] text-sm">Plate</span>
-            <span className="text-white font-mono">{carPlate}</span>
+            <span className="text-white font-mono">{driverInfo.plate}</span>
           </div>
         </div>
 
@@ -157,17 +107,15 @@ function MatchFoundContent() {
             <MapPin className="w-5 h-5 text-[#DC143C] mt-0.5" />
             <div className="flex-1">
               <p className="text-xs text-[#99A1AF]">Pickup</p>
-              <p className="text-sm text-white">{rideData.origin}</p>
+              <p className="text-sm text-white">{driverInfo.origin}</p>
             </div>
-            <span className="text-xs text-[#99A1AF]">
-              {new Date(rideData.departureTime).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
-            </span>
+            <span className="text-xs text-[#99A1AF]">{driverInfo.eta}</span>
           </div>
           <div className="flex items-start gap-3">
             <MapPin className="w-5 h-5 text-blue-400 mt-0.5" />
             <div className="flex-1">
               <p className="text-xs text-[#99A1AF]">Destination</p>
-              <p className="text-sm text-white">{rideData.destination}</p>
+              <p className="text-sm text-white">{driverInfo.destination}</p>
             </div>
           </div>
         </div>
@@ -191,9 +139,9 @@ function MatchFoundContent() {
       {/* Fare Display */}
       <div className="mx-6 mb-6 p-4 bg-gradient-to-r from-[#DC143C]/20 to-[#8B0000]/20 border border-[#DC143C]/30 rounded-[18px]">
         <div className="flex items-center justify-between">
-          <span className="text-white font-medium">Trip Fare (per seat)</span>
+          <span className="text-white font-medium">Trip Fare</span>
           <span className="text-2xl font-bold text-white">
-            BHD {farePerSeat.toFixed(3)}
+            BHD {driverInfo.fare.toFixed(2)}
           </span>
         </div>
       </div>
